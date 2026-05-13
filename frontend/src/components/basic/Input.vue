@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import EyeIcon from './icons/EyeIcon.vue';
+import EyeIcon from '../icons/EyeIcon.vue';
 
 const VARIANTS = [
   'text', 'password'
@@ -9,7 +9,8 @@ const VARIANTS = [
 const passwordHidden = ref(true);
 
 const props = defineProps({
-  variant: {type: String, default: 'text'}
+  variant: {type: String, default: 'text'},
+  width: {type: String, default: '10em'}
 });
 
 const validVariant = computed(() => {
@@ -23,7 +24,7 @@ const validVariant = computed(() => {
 
 
 <template>
-  <div class="input-wrapper">
+  <div class="input-wrapper" :style="{ width: props.width }">
     <input :class="validVariant" :type="passwordHidden ? validVariant : 'text'" v-bind="$attrs" />
     <button
       v-if="validVariant == 'password'"
@@ -40,7 +41,6 @@ const validVariant = computed(() => {
 <style scoped>
 .input-wrapper {
   position: relative;
-  width: fit-content;
   height: fit-content;
 }
 
@@ -53,7 +53,7 @@ input {
   padding: 4px;
   padding-left: 6px;
   padding-right: 6px;
-  width: 10em;
+  width: 100%;
 }
 
 input.password {
@@ -61,6 +61,11 @@ input.password {
 }
 
 input:focus {
+  color: black;
+  outline: none;
+}
+
+.input-wrapper:focus-within input {
   color: black;
   outline: none;
 }

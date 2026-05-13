@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import Button from './components/Button.vue';
-import Input from './components/Input.vue';
-import EyeIcon from './components/icons/EyeIcon.vue';
+import LoginDialog from './components/LoginDialog.vue';
+import RegisterDialog from './components/RegisterDialog.vue';
 </script>
 
 <template>
-  <div class="buttons">
-    <Button variant="green">challenge ⚔️</Button>
-    <Button variant="red">capitulate 🏳️</Button>
-    <Button disabled>offline 💤</Button>
-    <Input variant="password" placeholder="password"></Input>
-  </div>
+  <LoginDialog />
+  <RegisterDialog />
 </template>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+html,
+body,
+#app {
+  font-family: 'Inter', sans-serif;
+}
+</style>
 
 <style scoped>
 .buttons {

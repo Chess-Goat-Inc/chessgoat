@@ -6,7 +6,8 @@ const VARIANTS = [
 ];
 
 const props = defineProps({
-  variant: {type: String, default: 'gray'}
+  variant: {type: String, default: 'gray'},
+  width: {type: String, default: 'fit-content'}
 });
 
 const validVariant = computed(() => {
@@ -20,7 +21,7 @@ const validVariant = computed(() => {
 </script>
 
 <template>
-  <button v-bind="$attrs" :class="validVariant">
+  <button v-bind="$attrs" :class="validVariant" :style="{ width: props.width }">
     <slot></slot>
   </button>
 </template>
