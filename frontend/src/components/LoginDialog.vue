@@ -5,13 +5,13 @@ import Button from './basic/Button.vue';
 
 <template>
   <div class="login-dialog">
-    <h1>Login to Chess-Goat ♟️</h1>
+    <h1>Login to Chess Goat ♟️</h1>
     <Input width="100%" placeholder="username"></Input>
     <Input width="100%" variant="password" placeholder="password"></Input>
     <Button width="100%" variant="green">login</Button>
     <div class="prompt">
       <p>not yet registered?</p>
-      <a href="/auth/register">register</a>
+      <RouterLink to="/auth/register">register</RouterLink>
     </div>
   </div>
 </template>
@@ -32,7 +32,7 @@ h1 {
   text-align: center;
   margin: 0;
   margin-bottom: 0.5em;
-} 
+}
 .prompt {
   display: flex;
   flex-direction: row;

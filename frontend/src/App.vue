@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import LoginDialog from './components/LoginDialog.vue';
-import RegisterDialog from './components/RegisterDialog.vue';
+import Header from './components/Header.vue';
 </script>
 
 <template>
-  <LoginDialog />
-  <RegisterDialog />
+  <Header>
+    <a href="/lobby">Lobby</a>
+    <a href="/profile">Profile</a>
+  </Header>
+  <RouterView />
 </template>
 
 <style>
@@ -15,6 +17,8 @@ html,
 body,
 #app {
   font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
 }
 </style>
 

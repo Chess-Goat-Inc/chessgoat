@@ -7,14 +7,14 @@ import Button from './basic/Button.vue';
 
 <template>
   <div class="register-dialog">
-    <h1>Register in Chess-Goat ♟️</h1>
+    <h1>Register in Chess Goat ♟️</h1>
     <Input ref="username" width="100%" placeholder="username"></Input>
     <Input ref="password" width="100%" variant="password" placeholder="password"></Input>
     <Input ref="repeat_password" width="100%" variant="password" placeholder="repeat password"></Input>
     <Button ref="submit" width="100%" variant="green">register</Button>
     <div class="prompt">
       <p>already registered?</p>
-      <a href="/auth/login">login</a>
+      <RouterLink to="/auth/login">login</RouterLink>
     </div>
   </div>
 </template>
@@ -35,7 +35,7 @@ h1 {
   text-align: center;
   margin: 0;
   margin-bottom: 0.5em;
-} 
+}
 .prompt {
   display: flex;
   flex-direction: row;
