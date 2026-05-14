@@ -33,17 +33,20 @@ header a:hover {
   animation: shake 0.5s infinite;
 }
 
-.right-side {
-  width: fit-content;
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-}
 
 @keyframes shake {
   0%   { rotate: 0deg; }
   25%  { rotate: 1deg; }
   75%  { rotate: -1deg; }
   100% { rotate: 0deg; }
+}
+</style>
+
+<style>
+.right-side, .right-side span {
+  display: flex;
+  width: fit-content;
+  flex-direction: row;
+  gap: 8px;
 }
 </style>

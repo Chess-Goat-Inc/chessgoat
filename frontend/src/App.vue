@@ -1,11 +1,31 @@
 <script setup lang="ts">
-import Header from './components/Header.vue';
+import Header from './components/Header.vue'
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useGameStore } from './stores/game'
+
+const route = useRoute()
+const gameStore = useGameStore()
+
+const headerTitle = computed(() => {
+  const metaTitle = route.meta.headerTitle as string | undefined
+  if (metaTitle) return metaTitle
+  if (route.name === 'game') {
+    return gameStore.opponent ? `Game with ${gameStore.opponent}` : 'Game'
+  }
+  return undefined
+})
 </script>
 
 <template>
   <Header>
-    <a href="/lobby">Lobby</a>
-    <a href="/profile">Profile</a>
+    <template #default>
+      <span v-if="headerTitle">{{ headerTitle }}</span>
+      <span v-else>
+        <RouterLink to="/lobby">Lobby</RouterLink>
+        <RouterLink to="/profile">Profile</RouterLink>
+      </span>
+    </template>
   </Header>
   <RouterView />
 </template>
