@@ -1,4 +1,11 @@
-<script setup>
+<script setup lang="ts">
+defineOptions({
+  name: 'SiteHeader',
+})
+
+defineSlots<{
+  default: () => unknown
+}>()
 </script>
 
 <template>
@@ -33,17 +40,25 @@ header a:hover {
   animation: shake 0.5s infinite;
 }
 
-
 @keyframes shake {
-  0%   { rotate: 0deg; }
-  25%  { rotate: 1deg; }
-  75%  { rotate: -1deg; }
-  100% { rotate: 0deg; }
+  0% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: 1deg;
+  }
+  75% {
+    rotate: -1deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
 }
 </style>
 
 <style>
-.right-side, .right-side span {
+.right-side,
+.right-side span {
   display: flex;
   width: fit-content;
   flex-direction: row;
