@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from lobby.models.base import async_session_maker
+from models.base import async_session_maker
 
   
 

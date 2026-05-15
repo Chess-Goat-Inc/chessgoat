@@ -9,9 +9,9 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import select, text, func, desc, case, union
-from lobby.models.users import User as UserModel
-from lobby.models.game import Game as GameModel
-from lobby.manager import manager
+from models.users import User as UserModel
+from models.game import Game as GameModel
+from manager import manager
 
 router = APIRouter(prefix="/users")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

@@ -9,4 +9,4 @@ RUN pip install -r ./requirements.txt && \
 
 COPY . .
 
-CMD [ "python3", "-m", "lobby.main"]
+CMD [ "python3", "-m", "main"]

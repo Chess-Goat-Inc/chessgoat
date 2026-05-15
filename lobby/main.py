@@ -1,10 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 import asyncio
 
-from lobby.routes.challenges import router as challenge_router
-from lobby.routes.users import router as user_router
+from routes.challenges import router as challenge_router
+from routes.users import router as user_router
 import uvicorn
-from lobby.manager import manager
+from manager import manager
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(challenge_router)
