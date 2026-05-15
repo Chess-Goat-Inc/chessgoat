@@ -15,6 +15,7 @@ const headerTitle = computed(() => {
   }
   return undefined
 })
+
 </script>
 
 <template>
@@ -40,6 +41,13 @@ body,
   margin: 0;
   padding: 0;
 }
+a {
+  color: black;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
 </style>
 
 <style scoped>
@@ -48,5 +56,20 @@ body,
   flex-direction: column;
   gap: 4px;
   width: 10em;
+}
+
+header a {
+  color: gray;
+  text-decoration: none;
+}
+
+header .router-link-active {
+  color: black;
+}
+
+header a:hover {
+  text-decoration: underline;
+  text-decoration-color: black;
+  -moz-text-decoration-color: black;
 }
 </style>
