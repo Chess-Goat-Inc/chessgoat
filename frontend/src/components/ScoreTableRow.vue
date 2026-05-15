@@ -43,6 +43,10 @@ const realStatus = props.is_me ? '' : props.status;
     padding: 4px;
     padding-left: 8px;
     padding-right: 8px;
+    transition: background-color 1s;
+  }
+  .row:hover {
+    background-color: #fafafa;
   }
   .row-info {
     display: flex;
@@ -53,9 +57,17 @@ const realStatus = props.is_me ? '' : props.status;
     gap: 16px;
     padding: 8px;
   }
-  .row-place { width: 2em; }
-  .row-score { width: 5em; }
-  .row-username { width: 8em; }
+  .row-place { min-width: 1.5em; }
+  .row-score {
+    min-width: 4em;
+    color: green;
+    border: 1px solid #A0A0A0;
+    background-color: white;
+    padding: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .row-username { min-width: 8em; }
   .row-actions {
     display: flex;
     flex-direction: row;

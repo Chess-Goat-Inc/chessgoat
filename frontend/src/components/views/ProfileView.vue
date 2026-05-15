@@ -1,8 +1,18 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+
+const route = useRoute();
+
+const username = computed(() => ((route.fullPath === '/profile' && 'lol') || route.params.username));
+
+
+</script>
+
 <template>
   <main>
-    <p>
-      Profile View
-    </p>
+    <h1>{{ username }}</h1>
   </main>
 </template>
 

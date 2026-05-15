@@ -28,7 +28,9 @@ const headerTitle = computed(() => {
       </span>
     </template>
   </Header>
-  <RouterView />
+  <Suspense>
+    <RouterView />
+  </Suspense>
 </template>
 
 <style>

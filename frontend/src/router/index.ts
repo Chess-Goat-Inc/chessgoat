@@ -15,6 +15,7 @@ const router = createRouter({
     { path: '/auth/login', component: LoginView, meta: { headerTitle: 'Authentication' } },
     { path: '/auth/register', component: RegisterView, meta: { headerTitle: 'Authentication' } },
     { path: '/auth/', redirect: '/auth/login' },
+    { path: '/user/:username', component: ProfileView }
   ],
 })
 
