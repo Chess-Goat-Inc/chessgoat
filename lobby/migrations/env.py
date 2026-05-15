@@ -18,7 +18,7 @@ import os
 load_dotenv()  # загрузит .env
 
 database_url = os.environ.get("DATABASE_URL")
-config.set_main_option("sqlalchemy.url", database_url)
+config.set_main_option("sqlalchemy.url", database_url) #type: ignore
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

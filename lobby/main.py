@@ -1,5 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 import asyncio
+
+import uvicorn
 app = FastAPI()
 
 class ConnetctionManager:
@@ -45,3 +47,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("User disconnects")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
