@@ -26,14 +26,6 @@ class ConnetctionManager:
 
     async def decline_challenge(): pass
 
-class UserManager:
-    fake_db: dict[str, str] = {}
-
-    async def get_by_id(): pass
-
-    async def get_by_username(): pass
-
-    
 
 manager = ConnetctionManager()
 
