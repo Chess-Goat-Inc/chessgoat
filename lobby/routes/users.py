@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, HTTPException, Header, Depends
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from .dependences import get_async_db
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from typing import Optional
 
@@ -13,8 +13,10 @@ from models.users import User as UserModel
 from models.game import Game as GameModel
 from manager import manager
 
+from config import ALGORITH, SECRET_KEY_REFRESH, SECRET_KEY_ACCESS
+import jwt
 router = APIRouter(prefix="/users")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = HTTPBearer()
 
 class User(BaseModel):
     id: int 
@@ -31,18 +33,32 @@ class User(BaseModel):
         return value
 
 @router.get("/me", response_model=User)
-async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_db)):
-    username = "alice" #TODO add decode
+async def get_current_user(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_db)):
+    try:
+        token = token.credentials #type: ignore
+        payload = jwt.decode(token, SECRET_KEY_ACCESS, algorithms=[ALGORITH]) #type: ignore
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token expired")
+    except (jwt.PyJWTError, jwt.DecodeError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+    username = payload["username"]
+    print(f'-----------------------------------------------------{username}')
     subqry = (
         select(
             UserModel.user_id,
             UserModel.username,
             UserModel.score,
-            func.row_num().over(order_by=desc(UserModel.score).label("place"))
+            func.row_number().over(order_by=desc(UserModel.score)).label("place")
         ).subquery()
     )
-    stmt = select(subqry).where(UserModel.username == username)
-    result = await session.scalars(stmt)
+
+    stmt = select(
+        subqry.c.user_id,
+        subqry.c.username,
+        subqry.c.score,
+        subqry.c.place
+            ).where(subqry.c.username == username)
+    result = await session.execute(stmt)
     user = result.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -50,7 +66,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSe
         id=user.user_id,
         username=user.username,
         rating=user.score,
-        place=user.place + 1,
+        place=user.place,
         status="online"
     )
 
