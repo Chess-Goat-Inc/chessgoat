@@ -24,5 +24,8 @@ class GameEntity(
     var whitePlayerId: UUID,
 
     @Column(name = "black_id")
-    var blackPlayerId: UUID
+    var blackPlayerId: UUID,
+
+    @Column(name = "winner_id")
+    var winnerId: UUID?
 )

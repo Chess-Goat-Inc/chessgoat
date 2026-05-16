@@ -73,4 +73,45 @@ class ChessLibAdapter : ChessEngine {
             .generateLegalMoves(board)
             .map { it.toString() }
     }
+
+    override fun getGameStatus(fen: String): GameStatus {
+        val board = Board()
+        board.loadFromFen(fen)
+
+        return if (
+            board.isMated ||
+            board.isDraw ||
+            board.isStaleMate ||
+            board.isInsufficientMaterial
+        ) {
+            GameStatus.FINISHED
+        } else {
+            GameStatus.STARTED
+        }
+    }
+
+    /**
+     * Use only when you are sure that game has finished. Otherwise, produces ambiguous result.
+     */
+    override fun getWinner(fen: String): PlayerColor? {
+        val board = Board()
+        board.loadFromFen(fen)
+
+        if (
+            board.isDraw ||
+            board.isStaleMate ||
+            board.isInsufficientMaterial
+        ) {
+            return null
+        }
+
+        if (board.isMated) {
+            return when (board.sideToMove) {
+                Side.WHITE -> PlayerColor.BLACK
+                Side.BLACK -> PlayerColor.WHITE
+            }
+        }
+
+        return null
+    }
 }

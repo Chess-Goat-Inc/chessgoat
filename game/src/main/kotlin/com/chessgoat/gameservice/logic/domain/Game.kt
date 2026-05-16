@@ -9,5 +9,6 @@ data class Game(
     val state: GameState,
     val status: GameStatus,
     val whitePlayerId: UUID,
-    val blackPlayerId: UUID
+    val blackPlayerId: UUID,
+    val winner: PlayerColor?
 )

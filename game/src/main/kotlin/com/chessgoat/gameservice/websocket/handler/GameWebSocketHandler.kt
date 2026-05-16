@@ -1,9 +1,11 @@
 package com.chessgoat.gameservice.websocket.handler
 
+import com.chessgoat.gameservice.logic.domain.GameFinishStatus
 import com.chessgoat.gameservice.logic.domain.PlayerColor
 import com.chessgoat.gameservice.logic.service.GameApplicationService
 import com.chessgoat.gameservice.logic.service.GameService
 import com.chessgoat.gameservice.websocket.model.AcceptMessage
+import com.chessgoat.gameservice.websocket.model.FinishGameMessage
 import com.chessgoat.gameservice.websocket.model.MoveMessage
 import com.chessgoat.gameservice.websocket.model.InitialMessage
 import com.chessgoat.gameservice.websocket.model.StartGameMessage
@@ -140,7 +142,6 @@ class GameWebSocketHandler(
         )
 
         val gameId = session.attributes["gameId"] as UUID
-
         val playerColor = PlayerColor.valueOf(
             session.attributes["playerColor"] as String
         )
@@ -148,31 +149,38 @@ class GameWebSocketHandler(
         val result = gameService.makeMove(gameId, playerColor, moveMessage.move)
 
         if (!result.success || result.game == null) {
-            val moveReject = MoveRejectMessage(
+            sendMoveRejectMessage(
+                session = session,
                 move = moveMessage.move,
                 reason = result.error ?: "Move failed"
             )
-            val rejectJson = objectMapper.writeValueAsString(moveReject)
-            session.sendMessage(TextMessage(rejectJson))
-        }
+        } else {
+            val room = roomManager.getOrCreateRoom(gameId)
 
-        val room = roomManager.getOrCreateRoom(gameId)
+            if (result.finishStatus != null) {
+                room.sessions.values.forEach {
+                    sendFinishGameMessage(
+                        session = it,
+                        fen = result.game.state.fen,
+                        winner = result.finishStatus
+                    )
+                }
+            } else {
+                sendMoveAcceptMessage(
+                    session = session,
+                    fen = result.game.state.fen,
+                    move = moveMessage.move
+                )
 
-        val moveAccept = MoveAcceptMessage(
-                move = moveMessage.move,
-                state = "NEW_FEN"
-        )
-        val acceptJson = objectMapper.writeValueAsString(moveAccept)
-        session.sendMessage(TextMessage(acceptJson))
-
-        val opponent = room.getOpponentSession(playerColor)
-        if (opponent != null) {
-            val opponentMove = OpponentMoveMessage(
-                    move = moveMessage.move,
-                    state = "NEW_FEN"
-            )
-            val opponentMoveJson = objectMapper.writeValueAsString(opponentMove)
-            opponent.sendMessage(TextMessage(opponentMoveJson))
+                val opponent = room.getOpponentSession(playerColor)
+                opponent?.let {
+                    sendOpponentMoveMessage(
+                        opponentSession = opponent,
+                        fen = result.game.state.fen,
+                        move = moveMessage.move
+                    )
+                }
+            }
         }
     }
 
@@ -182,8 +190,83 @@ class GameWebSocketHandler(
     ) {
         println("Socket disconnected: ${session.id}")
 
+        val gameId = session.attributes["gameId"] as UUID
+        val playerColor = session.attributes["playerColor"] as PlayerColor
+        val result = gameService.handleDisconnect(
+            gameId,
+            playerColor
+        )
+
+        if (!result.success || result.game == null) {
+            return
+        }
+
+        val room = roomManager.getOrCreateRoom(gameId)
+
+        val opponentSession = room.getOpponentSession(playerColor)
+
+        if (opponentSession != null && opponentSession.isOpen) {
+            sendFinishGameMessage(
+                session = opponentSession,
+                fen = result.game.state.fen,
+                winner = result.finishStatus!!
+            )
+        }
+
         authTimeoutTasks
             .remove(session.id)
             ?.cancel(false)
+    }
+
+    private fun sendFinishGameMessage(
+        session: WebSocketSession,
+        fen: String,
+        winner: GameFinishStatus
+    ) {
+        val finish = FinishGameMessage(
+            state = fen,
+            winner = winner.name
+        )
+        val finishJson = objectMapper.writeValueAsString(finish)
+        session.sendMessage(TextMessage(finishJson))
+    }
+
+    private fun sendMoveAcceptMessage(
+        session: WebSocketSession,
+        fen: String,
+        move: String
+    ) {
+        val moveAccept = MoveAcceptMessage(
+            move = move,
+            state = fen
+        )
+        val acceptJson = objectMapper.writeValueAsString(moveAccept)
+        session.sendMessage(TextMessage(acceptJson))
+    }
+
+    private fun sendOpponentMoveMessage(
+        opponentSession: WebSocketSession,
+        fen: String,
+        move: String
+    ) {
+        val opponentMove = OpponentMoveMessage(
+            move = move,
+            state = fen
+        )
+        val opponentMoveJson = objectMapper.writeValueAsString(opponentMove)
+        opponentSession.sendMessage(TextMessage(opponentMoveJson))
+    }
+
+    private fun sendMoveRejectMessage(
+        session: WebSocketSession,
+        move: String,
+        reason: String
+    ) {
+        val moveReject = MoveRejectMessage(
+            move = move,
+            reason = reason
+        )
+        val rejectJson = objectMapper.writeValueAsString(moveReject)
+        session.sendMessage(TextMessage(rejectJson))
     }
 }
