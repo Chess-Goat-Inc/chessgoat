@@ -1,7 +1,7 @@
 package com.chessgoat.gameservice
 
-import com.chessgoat.gameservice.domain.PlayerColor
-import com.chessgoat.gameservice.engine.ChessLibAdapter
+import com.chessgoat.gameservice.logic.domain.PlayerColor
+import com.chessgoat.gameservice.logic.engine.ChessLibAdapter
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import kotlin.test.assertEquals

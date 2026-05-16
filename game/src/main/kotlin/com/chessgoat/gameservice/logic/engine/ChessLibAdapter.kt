@@ -11,6 +11,14 @@ import com.github.bhlangonijr.chesslib.move.MoveGenerator
 
 class ChessLibAdapter : ChessEngine {
 
+    override fun createInitialState(): GameState {
+        val board = Board()
+        return GameState(
+            fen = board.fen,
+            turn = PlayerColor.WHITE
+        )
+    }
+
     override fun applyMove(
         state: GameState,
         move: String

@@ -4,6 +4,9 @@ import com.chessgoat.gameservice.logic.domain.GameState
 import com.chessgoat.gameservice.logic.result.MoveResult
 
 interface ChessEngine {
+
+    fun createInitialState(): GameState
+
     fun applyMove(
         state: GameState,
         move: String
