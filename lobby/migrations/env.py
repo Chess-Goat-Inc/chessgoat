@@ -15,7 +15,7 @@ config = context.config
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  # загрузит .env
+load_dotenv()
 
 database_url = os.environ.get("DATABASE_URL")
 config.set_main_option("sqlalchemy.url", database_url) #type: ignore
