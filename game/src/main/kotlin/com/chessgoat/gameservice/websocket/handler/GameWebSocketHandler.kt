@@ -3,7 +3,6 @@ package com.chessgoat.gameservice.websocket.handler
 import com.chessgoat.gameservice.logic.domain.GameFinishStatus
 import com.chessgoat.gameservice.logic.domain.PlayerColor
 import com.chessgoat.gameservice.logic.service.GameApplicationService
-import com.chessgoat.gameservice.logic.service.GameService
 import com.chessgoat.gameservice.websocket.model.AcceptMessage
 import com.chessgoat.gameservice.websocket.model.FinishGameMessage
 import com.chessgoat.gameservice.websocket.model.MoveMessage
@@ -157,12 +156,21 @@ class GameWebSocketHandler(
         } else {
             val room = roomManager.getOrCreateRoom(gameId)
 
-            if (result.finishStatus != null) {
+            if (result.finishState != null
+                && result.finishState.whiteRating != null
+                && result.finishState.blackRating != null
+                ) {
                 room.sessions.values.forEach {
                     sendFinishGameMessage(
                         session = it,
                         fen = result.game.state.fen,
-                        winner = result.finishStatus
+                        winner = result.finishState.finishStatus,
+                        rating =
+                            if (playerColor == PlayerColor.WHITE) {
+                                result.finishState.whiteRating
+                            } else {
+                                result.finishState.blackRating
+                            }
                     )
                 }
             } else {
@@ -206,11 +214,22 @@ class GameWebSocketHandler(
         val opponentSession = room.getOpponentSession(playerColor)
 
         if (opponentSession != null && opponentSession.isOpen) {
-            sendFinishGameMessage(
-                session = opponentSession,
-                fen = result.game.state.fen,
-                winner = result.finishStatus!!
-            )
+            if (result.finishState != null
+                && result.finishState.whiteRating != null
+                && result.finishState.blackRating != null
+                ) {
+                sendFinishGameMessage(
+                    session = opponentSession,
+                    fen = result.game.state.fen,
+                    winner = result.finishState.finishStatus,
+                    rating =
+                        if (playerColor == PlayerColor.WHITE) {
+                            result.finishState.blackRating
+                        } else {
+                            result.finishState.whiteRating
+                        }
+                )
+            }
         }
 
         authTimeoutTasks
@@ -221,11 +240,13 @@ class GameWebSocketHandler(
     private fun sendFinishGameMessage(
         session: WebSocketSession,
         fen: String,
-        winner: GameFinishStatus
+        winner: GameFinishStatus,
+        rating: Int
     ) {
         val finish = FinishGameMessage(
             state = fen,
-            winner = winner.name
+            winner = winner.name,
+            rating = rating.toString()
         )
         val finishJson = objectMapper.writeValueAsString(finish)
         session.sendMessage(TextMessage(finishJson))

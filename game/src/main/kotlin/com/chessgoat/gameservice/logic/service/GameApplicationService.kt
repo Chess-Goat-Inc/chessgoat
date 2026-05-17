@@ -2,21 +2,25 @@ package com.chessgoat.gameservice.logic.service
 
 import com.chessgoat.gameservice.logic.domain.PlayerColor
 import com.chessgoat.gameservice.database.entity.GameMapper
+import com.chessgoat.gameservice.database.entity.UserMapper
 import com.chessgoat.gameservice.database.repository.GameRepository
-import com.chessgoat.gameservice.logic.domain.Game
+import com.chessgoat.gameservice.database.repository.UserRepository
+import com.chessgoat.gameservice.logic.domain.GameFinishState
 import com.chessgoat.gameservice.logic.domain.GameFinishStatus
 import com.chessgoat.gameservice.logic.domain.GameStatus
 import com.chessgoat.gameservice.logic.result.GameMoveResult
-import com.chessgoat.gameservice.websocket.model.FinishGameMessage
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
 class GameApplicationService(
-    private val repository: GameRepository,
-    private val mapper: GameMapper,
-    private val gameService: GameService
+    private val gameRepository: GameRepository,
+    private val gameMapper: GameMapper,
+    private val gameService: GameService,
+    private val userRepository: UserRepository,
+    private val userMapper: UserMapper,
+    private val ratingService: RatingService
 ) {
 
     @Transactional
@@ -25,12 +29,12 @@ class GameApplicationService(
         playerColor: PlayerColor,
         move: String
     ): GameMoveResult {
-        val entity = repository.findById(gameId)
+        val entity = gameRepository.findById(gameId)
                 .orElseThrow {
                     IllegalArgumentException("Game not found")
                 }
 
-        val game = mapper.toDomain(entity)
+        val game = gameMapper.toDomain(entity)
 
         val result = gameService.makeMove(game, playerColor, move)
 
@@ -38,32 +42,45 @@ class GameApplicationService(
             return result
         }
 
-        val updatedEntity = mapper.toEntity(result.game)
+        if (result.finishState != null) {
+            val (whiteRating, blackRating) = updateRatings(result)
 
-        repository.save(updatedEntity)
+            return GameMoveResult(
+                success = true,
+                game = result.game,
+                error = null,
+                finishState = result.finishState.copy(
+                    whiteRating = whiteRating,
+                    blackRating = blackRating
+                )
+            )
+        }
+
+        val updatedEntity = gameMapper.toEntity(result.game)
+        gameRepository.save(updatedEntity)
 
         return GameMoveResult(
             success = true,
-            game = game,
+            game = result.game,
             error = null,
-            finishStatus = result.finishStatus
+            finishState = result.finishState
         )
     }
 
     // Yeah, that's dumb and counter-intuitive that this function returns GameMoveResult. Live with that
     @Transactional
     fun handleDisconnect(gameId: UUID, disconnectedPlayer: PlayerColor): GameMoveResult {
-        val entity = repository.findById(gameId)
+        val entity = gameRepository.findById(gameId)
                 .orElseThrow()
 
-        val game = mapper.toDomain(entity)
+        val game = gameMapper.toDomain(entity)
 
         if (game.status != GameStatus.STARTED) {
             return GameMoveResult(
                 success = false,
                 game = null,
                 error = "Game is not active",
-                finishStatus = null
+                finishState = null
             )
         }
 
@@ -78,30 +95,42 @@ class GameApplicationService(
                 status = GameStatus.FINISHED,
                 winner = winner
         )
-
-        repository.save(mapper.toEntity(updatedGame))
-
-        return GameMoveResult(
+        val result = GameMoveResult(
             success = true,
             game = updatedGame,
             error = null,
-            finishStatus =
-                if (winner == PlayerColor.WHITE) {
-                    GameFinishStatus.WHITE_WIN
-                } else {
-                    GameFinishStatus.BLACK_WIN
-                }
+            finishState = GameFinishState(
+                finishStatus =
+                    if (winner == PlayerColor.WHITE) {
+                        GameFinishStatus.WHITE_WIN
+                    } else {
+                        GameFinishStatus.BLACK_WIN
+                    },
+                whiteRating = null,
+                blackRating = null
+            )
+        )
+
+        val (whiteRating, blackRating) = updateRatings(result)
+
+        gameRepository.save(gameMapper.toEntity(updatedGame))
+
+        return result.copy(
+            finishState = result.finishState!!.copy(
+                whiteRating = whiteRating,
+                blackRating = blackRating
+            )
         )
     }
 
     @Transactional
     fun getPlayerColor(gameId: UUID, playerId: UUID): PlayerColor? {
-        val entity = repository.findById(gameId)
+        val entity = gameRepository.findById(gameId)
             .orElseThrow {
                 IllegalArgumentException("Game not found")
             }
 
-        val game = mapper.toDomain(entity)
+        val game = gameMapper.toDomain(entity)
         val playerColor =
             when(playerId) {
                 game.whitePlayerId -> PlayerColor.WHITE
@@ -114,12 +143,37 @@ class GameApplicationService(
 
     @Transactional
     fun getBoardFen(gameId: UUID): String {
-        val entity = repository.findById(gameId)
+        val entity = gameRepository.findById(gameId)
             .orElseThrow {
                 IllegalArgumentException("Game not found")
             }
 
-        val game = mapper.toDomain(entity)
+        val game = gameMapper.toDomain(entity)
         return game.state.fen
+    }
+
+    private fun updateRatings(moveResult: GameMoveResult): Pair<Int, Int> {
+        val whiteUserEntity = userRepository.findById(moveResult.game!!.whitePlayerId)
+            .orElseThrow()
+        val blackUserEntity = userRepository.findById(moveResult.game.blackPlayerId)
+            .orElseThrow()
+
+        val whiteUser = userMapper.toDomain(whiteUserEntity)
+        val blackUser = userMapper.toDomain(blackUserEntity)
+
+        val ratingResult =
+            ratingService.calculateRatings(
+                whiteRating = whiteUser.rating,
+                blackRating = blackUser.rating,
+                finishStatus = moveResult.finishState!!.finishStatus
+            )
+
+        val updatedWhiteUser = whiteUser.copy(rating = ratingResult.whiteRating)
+        val updatedBlackUser = blackUser.copy(rating = ratingResult.blackRating)
+
+        userRepository.save(userMapper.toEntity(updatedWhiteUser))
+        userRepository.save(userMapper.toEntity(updatedBlackUser))
+
+        return Pair(ratingResult.whiteRating, ratingResult.blackRating)
     }
 }

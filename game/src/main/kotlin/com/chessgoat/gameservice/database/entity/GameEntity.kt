@@ -7,7 +7,7 @@ import jakarta.persistence.Table
 import java.util.UUID
 
 @Entity
-@Table(name = "game")
+@Table(name = "games")
 class GameEntity(
 
     @Id

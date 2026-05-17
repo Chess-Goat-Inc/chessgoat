@@ -1,6 +1,7 @@
 package com.chessgoat.gameservice.logic.service
 
 import com.chessgoat.gameservice.logic.domain.Game
+import com.chessgoat.gameservice.logic.domain.GameFinishState
 import com.chessgoat.gameservice.logic.domain.GameFinishStatus
 import com.chessgoat.gameservice.logic.domain.GameState
 import com.chessgoat.gameservice.logic.domain.GameStatus
@@ -23,7 +24,7 @@ class GameService(
                 success = false,
                 game = null,
                 error = "Game is not active",
-                finishStatus = null
+                finishState = null
             )
         }
 
@@ -32,7 +33,7 @@ class GameService(
                 success = false,
                 game = null,
                 error = "It is not $playerColor turn",
-                finishStatus = null
+                finishState = null
             )
         }
 
@@ -43,7 +44,7 @@ class GameService(
                 success = false,
                 game = null,
                 error = moveResult.error ?: "Move failed",
-                finishStatus = null
+                finishState = null
             )
         }
 
@@ -73,7 +74,12 @@ class GameService(
             success = true,
             game = updatedGame,
             error = null,
-            finishStatus = finishStatus,
+            finishState =
+                if (finishStatus != null) {
+                    GameFinishState(finishStatus, null, null)
+                } else {
+                    null
+                }
         )
     }
 
