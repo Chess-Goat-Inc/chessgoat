@@ -4,7 +4,7 @@ from enum import Enum
 from .dependences import get_async_db
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -17,6 +17,16 @@ from config import ALGORITH, SECRET_KEY_REFRESH, SECRET_KEY_ACCESS
 import jwt
 router = APIRouter(prefix="/users")
 oauth2_scheme = HTTPBearer()
+
+def validate_token(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme))-> dict[str, Any]:
+    try:
+        token = token.credentials #type: ignore
+        payload = jwt.decode(token, SECRET_KEY_ACCESS, algorithms=[ALGORITH]) #type: ignore
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token expired")
+    except (jwt.PyJWTError, jwt.DecodeError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
 
 class User(BaseModel):
     id: int 
@@ -32,17 +42,24 @@ class User(BaseModel):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="There is no such status")
         return value
 
+async def get_user(name: str, session: AsyncSession = Depends(get_async_db))-> User | None:
+    stmt = select(UserModel).where(UserModel.username == name)
+    result = await session.execute(stmt)
+    user = result.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return User(
+        id=user.user_id,
+        username=user.username,
+        rating=user.score,
+        place=0,
+        status="online"
+    )
+
+
 @router.get("/me", response_model=User)
-async def get_current_user(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_db)):
-    try:
-        token = token.credentials #type: ignore
-        payload = jwt.decode(token, SECRET_KEY_ACCESS, algorithms=[ALGORITH]) #type: ignore
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token expired")
-    except (jwt.PyJWTError, jwt.DecodeError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+async def get_current_user(payload: dict[str, Any] = Depends(validate_token), session: AsyncSession = Depends(get_async_db)):
     username = payload["username"]
-    print(f'-----------------------------------------------------{username}')
     subqry = (
         select(
             UserModel.user_id,
