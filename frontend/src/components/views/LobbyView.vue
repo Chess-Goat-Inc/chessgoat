@@ -6,6 +6,7 @@ import { computed, provide } from 'vue';
 import ScoreTable from '../ScoreTable.vue';
 import { fetch_me, fetch_players, test_ws } from '@/fetches';
 import { useProfileStore } from '@/stores/profile';
+import ChallengeMessage from '../ChallengeMessage.vue';
 
 const profile = await useProfileStore();
 const players: Ref<Player[]> = ref([]);
@@ -31,6 +32,7 @@ onMounted(async () => {
 <template>
   <main>
     <ScoreTable/>
+    <ChallengeMessage />
   </main>
 </template>
 

@@ -23,7 +23,7 @@ const realStatus = props.is_me ? '' : props.status;
         </div>
     </div>
     <div class="row-actions">
-        <Button variant="green" v-if="realStatus === 'online'">challenge ⚔️</Button>
+      <Button variant="green" v-if="realStatus === 'online'">challenge ⚔️</Button>
       <Button disabled v-if="realStatus === 'offline'">offline 💤</Button>
       <Button disabled v-if="realStatus === 'in-game'">in game ⏳</Button>
     </div>

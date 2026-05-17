@@ -24,8 +24,8 @@ export default defineComponent({
         </div>
         <div class="challenge-text">{{ opponent }} challenges you ⚔️</div>
         <div class="button-container">
-            <Button class="acc-button" >accept ⚔️</Button>
-            <Button class="dec-button">decline 🤡</Button>
+            <Button class="acc-button" variant="green">accept ⚔️</Button>
+            <Button class="dec-button" variant="red">decline 🤡</Button>
         </div>
     </div>
 
@@ -33,6 +33,9 @@ export default defineComponent({
 
 <style scoped>
 .challenge-body {
+    position:absolute;
+    right: 16px;
+    top: 30%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

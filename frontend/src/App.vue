@@ -6,6 +6,7 @@ import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useGameStore } from './stores/game'
 import { useAuthStore } from './stores/auth'
 import { useProfileStore } from './stores/profile'
+import ChallengeMessage from './components/ChallengeMessage.vue'
 
 const route = useRoute()
 const router = useRouter()
