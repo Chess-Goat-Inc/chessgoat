@@ -14,3 +14,4 @@ with open('jwt_public.pem', 'rb') as key_file:
         key_file.read()
     )
 SECRET_KEY_ACCESS = key
+REDIS_HOST = os.getenv("REDIS_HOST")
