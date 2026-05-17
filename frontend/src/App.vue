@@ -3,9 +3,15 @@ import Header from './components/Header.vue'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { useGameStore } from './stores/game'
+import { fetch_login } from './fetches'
 
 const route = useRoute()
 const gameStore = useGameStore()
+
+const access_token = await fetch_login({
+  'username': 'upco',
+  'password': '123'
+});
 
 const headerTitle = computed(() => {
   const metaTitle = route.meta.headerTitle as string | undefined

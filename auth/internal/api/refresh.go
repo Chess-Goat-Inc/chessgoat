@@ -87,6 +87,5 @@ func refreshTokenFromRequest(c *gin.Context) (string, bool) {
 	if err := c.ShouldBindJSON(&req); err != nil || req.RefreshToken == "" {
 		return "", false
 	}
-
 	return req.RefreshToken, true
 }
