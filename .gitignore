@@ -7,3 +7,4 @@ auth/secrets/jwt_private.pem
 jwt_public.pem
 init-db
 auth/.DS_Store
+.DS_Store

@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	AccessTokenTTL = 1 * time.Minute
-	//RefreshTokenTTL = 7 * 24 * time.Hour
-	RefreshTokenTTL = 2 * time.Minute
+	AccessTokenTTL = 15 * time.Minute
+	RefreshTokenTTL = 7 * 24 * time.Hour
 )
 
 type tokenClaims struct {

@@ -6,15 +6,12 @@ import (
 	"time"
 
 	"auth/internal/database"
+	"auth/internal/models"
 	"auth/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )
-
-type refreshRequest struct {
-	RefreshToken string `json:"refresh_token"`
-}
 
 type refreshResponse struct {
 	AccessToken string `json:"access_token"`
@@ -65,13 +62,42 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.GenerateAccessToken(user.UserID, user.Username)
+	accessToken, newRefreshToken, err := utils.GenerateTokens(user.UserID, user.Username)
 
 	if err != nil {
-		utils.LogEndpointError(c, http.StatusInternalServerError, "failed to generate access token during refresh", err)
+		utils.LogEndpointError(c, http.StatusInternalServerError, "failed to generate tokens during refresh", err)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
+
+	if err := database.RevokeRefreshTokenByID(c.Request.Context(), storedToken.RefreshTokenID); err != nil {
+		utils.LogEndpointError(c, http.StatusInternalServerError, "failed to revoke old refresh token during refresh", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.InsertRefreshToken(c.Request.Context(), models.RefreshToken{
+		UserID:           user.UserID,
+		RefreshTokenHash: utils.HashToken(newRefreshToken),
+		IsRevoked:        false,
+		ExpiresAt:        time.Now().Add(utils.RefreshTokenTTL),
+	})
+
+	if err != nil {
+		utils.LogEndpointError(c, http.StatusInternalServerError, "failed to persist new refresh token during refresh", err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.SetCookie(
+		"refresh_token",
+		newRefreshToken,
+		int(utils.RefreshTokenTTL.Seconds()),
+		"/",
+		"",
+		false,
+		true,
+	)
 
 	c.JSON(http.StatusOK, refreshResponse{AccessToken: accessToken})
 }
@@ -82,10 +108,5 @@ func refreshTokenFromRequest(c *gin.Context) (string, bool) {
 		return refreshToken, true
 	}
 
-	var req refreshRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil || req.RefreshToken == "" {
-		return "", false
-	}
-	return req.RefreshToken, true
+	return "", false
 }

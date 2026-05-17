@@ -159,6 +159,20 @@ func GetRefreshTokensByUserID(ctx context.Context, userID int) ([]models.Refresh
 	return refreshTokens, nil
 }
 
+func RevokeRefreshTokenByID(ctx context.Context, refreshTokenID int) error {
+	query := `
+		UPDATE refresh_tokens
+		SET is_revoked = true
+		WHERE refresh_token_id = $1
+	`
+
+	if _, err := DB.Exec(ctx, query, refreshTokenID); err != nil {
+		return fmt.Errorf("revoke refresh token by id: %w", err)
+	}
+
+	return nil
+}
+
 func scanUser(row pgx.Row) (models.User, error) {
 	var user models.User
 	if err := row.Scan(&user.UserID, &user.Username, &user.PasswordHash, &user.Score); err != nil {
