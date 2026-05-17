@@ -44,14 +44,7 @@ class User(BaseModel):
         return value
 
 @router.get("/me", response_model=User)
-async def get_current_user(token: HTTPAuthorizationCredentials = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_db)):
-    try:
-        token = token.credentials #type: ignore
-        payload = jwt.decode(token, SECRET_KEY_ACCESS, algorithms=[ALGORITH]) #type: ignore
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token expired")
-    except (jwt.PyJWTError, jwt.DecodeError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+async def get_current_user(payload: dict[str, Any] = Depends(validate_token), session: AsyncSession = Depends(get_async_db)):
     username = payload["username"]
     print(f'-----------------------------------------------------{username}')
     subqry = (
