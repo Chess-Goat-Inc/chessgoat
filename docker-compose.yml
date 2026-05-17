@@ -46,6 +46,12 @@ services:
       DB_NAME: ${POSTGRES_DB}
     networks:
       - dev
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    networks:
+      - dev
   db:
     volumes:
       - db-data:/var/lib/postgresql/data

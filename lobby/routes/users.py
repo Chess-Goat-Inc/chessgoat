@@ -43,10 +43,24 @@ class User(BaseModel):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="There is no such status")
         return value
 
+async def get_user(name: str, session: AsyncSession = Depends(get_async_db))-> User | None:
+    stmt = select(UserModel).where(UserModel.username == name)
+    result = await session.execute(stmt)
+    user = result.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return User(
+        id=user.user_id,
+        username=user.username,
+        rating=user.score,
+        place=0,
+        status="online"
+    )
+
+
 @router.get("/me", response_model=User)
 async def get_current_user(payload: dict[str, Any] = Depends(validate_token), session: AsyncSession = Depends(get_async_db)):
     username = payload["username"]
-    print(f'-----------------------------------------------------{username}')
     subqry = (
         select(
             UserModel.user_id,
