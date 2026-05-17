@@ -18,6 +18,7 @@ services:
       - db
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - ALGORITHM=${ALGORITHM}
     ports:
       - 8000:8000
     networks:

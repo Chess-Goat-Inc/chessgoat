@@ -18,18 +18,18 @@ const data: LoginData = {
   'username': 'upco',
   'password': '123'
 }
-auth.refresh().then(()=>{
-  console.log(auth.access_token);
-  profile.get_me().then(()=>{
-    console.log(profile.me)
-  })
-})
-// auth.login(data).then(()=>{
+// auth.refresh().then(()=>{
 //   console.log(auth.access_token);
 //   profile.get_me().then(()=>{
 //     console.log(profile.me)
 //   })
 // })
+auth.login(data).then(()=>{
+  console.log(auth.access_token);
+  profile.get_me().then(()=>{
+    console.log(profile.me)
+  })
+})
 
 const headerTitle = computed(() => {
   const metaTitle = route.meta.headerTitle as string | undefined
