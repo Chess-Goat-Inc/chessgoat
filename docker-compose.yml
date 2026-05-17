@@ -32,6 +32,9 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # CORS
+      CORS_ADDRS: ${AUTH_CORS_ADDRS}
+
       # JWT
       SECRET_FILE: ${PRIVATE_KEY_FILE}
 

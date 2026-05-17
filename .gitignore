@@ -3,6 +3,7 @@
 __pycache__/
 **/__pycache__/
 chess_goat_dump.sql
-./auth/secrets/jwt_private.pem
-./jwt_public.pem
-./init-db
+auth/secrets/jwt_private.pem
+jwt_public.pem
+init-db
+auth/.DS_Store
