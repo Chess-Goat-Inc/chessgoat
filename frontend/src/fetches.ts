@@ -1,15 +1,30 @@
-import type { Player } from "./models"
+import type { Player, LoginData } from "./models"
 import { EMPTY_PLAYER } from "./models"
 
 const LOBBY_HOST_URL = 'http://localhost:8000'
 const AUTH_HOST_URL = 'http://localhost:8080'
 
 
-interface LoginData {
-  username: string
-  password: string
+export async function fetch_me(access_token: string): Promise<Player> {
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${access_token}`
+  })
+  const response = await fetch(
+    `${LOBBY_HOST_URL}/users/me`,
+    { method: 'GET', headers: headers }
+  )
+  if (!response.ok) {
+    console.log('Fetch error:', response);
+    return EMPTY_PLAYER;
+  }
+  const body = await response.json();
+  body.is_me = false;
+  body.score = body.rating;
+  delete body.rating;
+  delete body.id;
+  return body;
 }
-
 
 export async function fetch_players(offset: number = 0, limit: number = 100): Promise<Player[]> {
   const params = {offset: String(offset), limit: String(limit)};
@@ -80,7 +95,7 @@ export async function fetch_refresh(): Promise<string> {
   })
   const response = await fetch(
     `${AUTH_HOST_URL}/auth/refresh`, {
-      method: 'GET',
+      method: 'POST',
       headers: headers,
       credentials: 'include',  // to get refresh token as HTTP-Only cookie
       redirect: 'follow'

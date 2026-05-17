@@ -1,3 +1,9 @@
+export interface LoginData {
+  username: string
+  password: string
+}
+
+
 export interface Player {
   place: number,
   score: number,
@@ -14,3 +20,4 @@ export const EMPTY_PLAYER: Player = {
   status: 'offline',
   is_me: false
 }
+
