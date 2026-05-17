@@ -1,9 +1,11 @@
 package com.chessgoat.gameservice.websocket.handler
 
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.chessgoat.gameservice.auth.JwtService
 import com.chessgoat.gameservice.logic.domain.GameFinishStatus
 import com.chessgoat.gameservice.logic.domain.PlayerColor
 import com.chessgoat.gameservice.logic.service.GameApplicationService
-import com.chessgoat.gameservice.websocket.model.AcceptMessage
+import com.chessgoat.gameservice.websocket.model.ConnectionAcceptMessage
 import com.chessgoat.gameservice.websocket.model.FinishGameMessage
 import com.chessgoat.gameservice.websocket.model.MoveMessage
 import com.chessgoat.gameservice.websocket.model.InitialMessage
@@ -11,7 +13,7 @@ import com.chessgoat.gameservice.websocket.model.StartGameMessage
 import com.chessgoat.gameservice.websocket.model.MoveAcceptMessage
 import com.chessgoat.gameservice.websocket.model.MoveRejectMessage
 import com.chessgoat.gameservice.websocket.model.OpponentMoveMessage
-import com.chessgoat.gameservice.websocket.model.RejectMessage
+import com.chessgoat.gameservice.websocket.model.ConnectionRejectMessage
 import com.chessgoat.gameservice.websocket.session.GameRoomManager
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
@@ -19,7 +21,6 @@ import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import tools.jackson.databind.ObjectMapper
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -29,7 +30,8 @@ import java.util.concurrent.TimeUnit
 class GameWebSocketHandler(
     private val objectMapper: ObjectMapper,
     private val roomManager: GameRoomManager,
-    private val gameService: GameApplicationService
+    private val gameService: GameApplicationService,
+    private val jwtService: JwtService
 ) : TextWebSocketHandler() {
 
     companion object{
@@ -45,7 +47,7 @@ class GameWebSocketHandler(
         val task = scheduler.schedule({
             if (session.isOpen && !session.attributes.containsKey("authenticated")) {
                 try {
-                    val reject = RejectMessage(reason = "Authentication timeout")
+                    val reject = ConnectionRejectMessage(reason = "Authentication timeout")
 
                     session.sendMessage(
                         TextMessage(objectMapper.writeValueAsString(reject))
@@ -82,52 +84,63 @@ class GameWebSocketHandler(
         session: WebSocketSession,
         payload: String
     ) {
-        val initialMessage =
-            objectMapper.readValue(
-                payload,
-                InitialMessage::class.java
-            )
+        try {
+            val initialMessage =
+                objectMapper.readValue(
+                    payload,
+                    InitialMessage::class.java
+                )
 
-        /*
-         * TODO:
-         * verify JWT
-         * load game
-         * verify player belongs to game
-         */
-        authTimeoutTasks
-            .remove(session.id)
-            ?.cancel(false)
-        val playerId = UUID.randomUUID() //TODO player id is received from JWT token
-
-        val gameId = UUID.fromString(
+            val gameId =
                 session
                     .uri!!
                     .query!!
-                    .split("=")[1]
+                    .split("=")[1].toInt()
+
+            val payload = jwtService.verifyToken(initialMessage.token)
+            val playerColor = gameService.authenticatePlayer(
+                gameId,
+                payload.userId
             )
 
-        val room = roomManager.getOrCreateRoom(gameId)
-        val playerColor = gameService.getPlayerColor(gameId, playerId)
-
-        session.attributes["authenticated"] = true
-        session.attributes["playerColor"] = playerColor!!.name
-        session.attributes["gameId"] = gameId
-
-        room.addSession(playerColor, session)
-        val accept = AcceptMessage(playerColor.name)
-
-        session.sendMessage(
-            TextMessage(objectMapper.writeValueAsString(accept))
-        )
-
-        if (room.isReady()) {
-            val initialBoardFen = gameService.getBoardFen(gameId)
-            val start = StartGameMessage(state = initialBoardFen)
-            val json = objectMapper.writeValueAsString(start)
-
-            room.sessions.values.forEach {
-                it.sendMessage(TextMessage(json))
+            if (playerColor == null) {
+                sendConnectionRejectMessage(
+                    session,
+                    "Game does not exist or player does not belong to the game"
+                )
+                return
             }
+
+            authTimeoutTasks
+                .remove(session.id)
+                ?.cancel(false)
+
+            val room = roomManager.getOrCreateRoom(gameId)
+
+            session.attributes["authenticated"] = true
+            session.attributes["playerColor"] = playerColor.name
+            session.attributes["gameId"] = gameId
+
+            room.addSession(playerColor, session)
+            sendConnectionAcceptMessage(
+                session,
+                playerColor.name
+            )
+
+            if (room.isReady()) {
+                val initialBoardFen = gameService.getBoardFen(gameId)
+                room.sessions.values.forEach {
+                    sendStartGameMessage(
+                        it,
+                        initialBoardFen
+                    )
+                }
+            }
+        } catch (e: JWTVerificationException) {
+            sendConnectionRejectMessage(
+                session,
+                e.message ?: "JWT token is invalid"
+            )
         }
     }
 
@@ -140,7 +153,7 @@ class GameWebSocketHandler(
                 MoveMessage::class.java
         )
 
-        val gameId = session.attributes["gameId"] as UUID
+        val gameId = session.attributes["gameId"] as Int
         val playerColor = PlayerColor.valueOf(
             session.attributes["playerColor"] as String
         )
@@ -198,7 +211,7 @@ class GameWebSocketHandler(
     ) {
         println("Socket disconnected: ${session.id}")
 
-        val gameId = session.attributes["gameId"] as UUID
+        val gameId = session.attributes["gameId"] as Int
         val playerColor = session.attributes["playerColor"] as PlayerColor
         val result = gameService.handleDisconnect(
             gameId,
@@ -289,5 +302,32 @@ class GameWebSocketHandler(
         )
         val rejectJson = objectMapper.writeValueAsString(moveReject)
         session.sendMessage(TextMessage(rejectJson))
+    }
+
+    private fun sendConnectionRejectMessage(
+        session: WebSocketSession,
+        reason: String
+    ) {
+        val connectionReject = ConnectionRejectMessage(reason = reason)
+        val rejectJson = objectMapper.writeValueAsString(connectionReject)
+        session.sendMessage(TextMessage(rejectJson))
+    }
+
+    private fun sendConnectionAcceptMessage(
+        session: WebSocketSession,
+        color: String
+    ) {
+        val connectionAccept = ConnectionAcceptMessage(color)
+        val acceptJson = objectMapper.writeValueAsString(connectionAccept)
+        session.sendMessage(TextMessage(acceptJson))
+    }
+
+    private fun sendStartGameMessage(
+        session: WebSocketSession,
+        initialBoardFen: String
+    ) {
+        val gameStart = StartGameMessage(state = initialBoardFen)
+        val startJson = objectMapper.writeValueAsString(gameStart)
+        session.sendMessage(TextMessage(startJson))
     }
 }

@@ -1,11 +1,10 @@
 package com.chessgoat.gameservice.websocket.session
 
 import com.chessgoat.gameservice.logic.domain.PlayerColor
-import java.util.UUID
 import org.springframework.web.socket.WebSocketSession
 import java.util.concurrent.ConcurrentHashMap
 
-class GameRoom(val gameId: UUID) {
+class GameRoom(val gameId: Int) {
     val sessions = ConcurrentHashMap<PlayerColor, WebSocketSession>()
 
     fun addSession(playerColor: PlayerColor, session: WebSocketSession) {

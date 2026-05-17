@@ -11,7 +11,6 @@ import com.chessgoat.gameservice.logic.domain.GameStatus
 import com.chessgoat.gameservice.logic.result.GameMoveResult
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 @Service
 class GameApplicationService(
@@ -25,7 +24,7 @@ class GameApplicationService(
 
     @Transactional
     fun makeMove(
-        gameId: UUID,
+        gameId: Int,
         playerColor: PlayerColor,
         move: String
     ): GameMoveResult {
@@ -69,7 +68,7 @@ class GameApplicationService(
 
     // Yeah, that's dumb and counter-intuitive that this function returns GameMoveResult. Live with that
     @Transactional
-    fun handleDisconnect(gameId: UUID, disconnectedPlayer: PlayerColor): GameMoveResult {
+    fun handleDisconnect(gameId: Int, disconnectedPlayer: PlayerColor): GameMoveResult {
         val entity = gameRepository.findById(gameId)
                 .orElseThrow()
 
@@ -124,7 +123,7 @@ class GameApplicationService(
     }
 
     @Transactional
-    fun getPlayerColor(gameId: UUID, playerId: UUID): PlayerColor? {
+    fun getPlayerColor(gameId: Int, playerId: Int): PlayerColor? {
         val entity = gameRepository.findById(gameId)
             .orElseThrow {
                 IllegalArgumentException("Game not found")
@@ -142,7 +141,7 @@ class GameApplicationService(
     }
 
     @Transactional
-    fun getBoardFen(gameId: UUID): String {
+    fun getBoardFen(gameId: Int): String {
         val entity = gameRepository.findById(gameId)
             .orElseThrow {
                 IllegalArgumentException("Game not found")
@@ -150,6 +149,20 @@ class GameApplicationService(
 
         val game = gameMapper.toDomain(entity)
         return game.state.fen
+    }
+
+    @Transactional
+    fun authenticatePlayer(gameId: Int, userId: Int): PlayerColor? {
+        val gameEntity = gameRepository.findById(gameId)
+                .orElse(null)
+                ?: return null
+        val game = gameMapper.toDomain(gameEntity)
+
+        return when (userId) {
+            game.whitePlayerId -> PlayerColor.WHITE
+            game.blackPlayerId -> PlayerColor.BLACK
+            else               -> null
+        }
     }
 
     private fun updateRatings(moveResult: GameMoveResult): Pair<Int, Int> {
