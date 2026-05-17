@@ -10,12 +10,11 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: '/lobby'},
     { path: '/lobby', component: LobbyView },
-    { path: '/profile', component: ProfileView },
+    { path: '/user/:username', component: ProfileView },
     { path: '/game', name: 'game', component: GameView },
     { path: '/auth/login', component: LoginView, meta: { headerTitle: 'Authentication' } },
     { path: '/auth/register', component: RegisterView, meta: { headerTitle: 'Authentication' } },
     { path: '/auth/', redirect: '/auth/login' },
-    { path: '/user/:username', component: ProfileView }
   ],
 })
 

@@ -1,37 +1,33 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { fetch_player } from '@/fetches';
 import { useAuthStore } from '@/stores/auth';
 import Button from '../basic/Button.vue';
+import { useProfileStore } from '@/stores/profile';
+import { EMPTY_PLAYER, type Player } from '@/models';
 
 
 const route = useRoute();
 const auth = useAuthStore();
+const profile = useProfileStore();
 
-const ownUsername: string = auth.username;
+const player: Ref<Player | undefined> = ref(undefined);
+fetch_player(route.params.username).then((pl) => {
+  player.value = pl;
+})
 
-const username = computed(() => {
-  if (route.params.username !== undefined) {
-    if (typeof(route.params.username) == 'string')
-      return route.params.username;
-    else
-      return 'unknown';
-  } else if (route.fullPath === '/profile') {
-    return ownUsername;
-  } else {
-    return 'unknown';
-  }
-});
-
-const player = await fetch_player(username.value);
-
+watch(route, () => {
+  fetch_player(route.params.username).then((pl) => {
+    player.value = pl;
+  })
+})
 
 </script>
 
 <template>
   <main>
-    <div class="profile">
+    <div class="profile" v-if="player">
       <h1 class="username">{{ player.username }}</h1>
       <div class="rating">
         <div class="place">Top: {{ player.place }}</div>
@@ -40,6 +36,9 @@ const player = await fetch_player(username.value);
       <div class="actions">
         <Button></Button>
       </div>
+    </div>
+    <div class="loading" v-if="!player">
+      Loading...
     </div>
   </main>
 </template>

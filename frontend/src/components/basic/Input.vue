@@ -1,17 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue';
 import EyeIcon from '../icons/EyeIcon.vue';
+
+defineOptions({ name: 'BasicInput' });
 
 const VARIANTS = [
   'text', 'password'
 ];
-
 const passwordHidden = ref(true);
 
 const props = defineProps({
+  modelValue: {type: String, default: ''},
   variant: {type: String, default: 'text'},
   width: {type: String, default: '10em'}
 });
+
+const emit = defineEmits(['update:modelValue']);
 
 const validVariant = computed(() => {
   if (VARIANTS.includes(props.variant)) {
@@ -25,7 +29,13 @@ const validVariant = computed(() => {
 
 <template>
   <div class="input-wrapper" :style="{ width: props.width }">
-    <input :class="validVariant" :type="passwordHidden ? validVariant : 'text'" v-bind="$attrs" />
+    <input
+      :class="validVariant"
+      :type="passwordHidden ? validVariant : 'text'"
+      :value="props.modelValue"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      v-bind="$attrs"
+    />
     <button
       v-if="validVariant == 'password'"
       class="eye-button"
