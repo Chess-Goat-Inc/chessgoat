@@ -3,9 +3,33 @@ import Header from './components/Header.vue'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { useGameStore } from './stores/game'
+import { fetch_login } from './fetches'
+import { useAuthStore } from './stores/auth'
+import { useProfileStore } from './stores/profile'
+import type { LoginData } from './models'
 
 const route = useRoute()
+
+const auth = useAuthStore();
+const profile = useProfileStore();
 const gameStore = useGameStore()
+
+const data: LoginData = {
+  'username': 'upco',
+  'password': '123'
+}
+// auth.refresh().then(()=>{
+//   console.log(auth.access_token);
+//   profile.get_me().then(()=>{
+//     console.log(profile.me)
+//   })
+// })
+auth.login(data).then(()=>{
+  console.log(auth.access_token);
+  profile.get_me().then(()=>{
+    console.log(profile.me)
+  })
+})
 
 const headerTitle = computed(() => {
   const metaTitle = route.meta.headerTitle as string | undefined
@@ -28,7 +52,9 @@ const headerTitle = computed(() => {
       </span>
     </template>
   </Header>
-  <RouterView />
+  <Suspense>
+    <RouterView />
+  </Suspense>
 </template>
 
 <style>

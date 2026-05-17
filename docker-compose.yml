@@ -2,6 +2,14 @@ networks:
   dev:
 
 services:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 5173:5173
+  #   networks:
+  #     - dev
   lobby:
     build:
       context: ./lobby
@@ -10,8 +18,32 @@ services:
       - db
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - ALGORITHM=${ALGORITHM}
     ports:
       - 8000:8000
+    networks:
+      - dev
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      # CORS
+      CORS_ADDRS: ${AUTH_CORS_ADDRS}
+
+      # JWT
+      SECRET_FILE: ${PRIVATE_KEY_FILE}
+
+      # Postgres
+      DB_URL: ${DATABASE_URL}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
     networks:
       - dev
   game:
@@ -41,5 +73,10 @@ services:
       - 5432:5432
     networks:
       - dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 volumes:
   db-data:
