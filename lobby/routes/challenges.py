@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.game import Game, GameState
 from models.users import User as UserModel
 from sqlalchemy import insert
-from users import validate_token, get_user
+from .users import validate_token, get_user
 router = APIRouter(prefix="/challenge")
 
 
