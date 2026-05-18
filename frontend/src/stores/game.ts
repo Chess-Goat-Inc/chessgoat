@@ -19,6 +19,46 @@ export const useGameStore = defineStore('game', () => {
   const myColor = ref<string | undefined>(undefined)
   const myTurn = ref<boolean | undefined>(undefined)
   const board = ref<string[][]>(make2DArray(8,8,'empty'))
+  const grabbing = ref<string | undefined>(undefined)
+  const grabbedFrom = ref<Vec2D | undefined>(undefined)
+
+  function grabFigure(x: number, y: number) {
+    const old = board.value[y][x];
+    if (old == 'empty') {
+      grabbing.value = undefined
+    } else {
+      grabbedFrom.value = {y, x};
+      grabbing.value = old;
+      board.value[y][x] = 'empty';
+    }
+  }
+
+  function putFigure(x: number, y: number) {
+    const old = board.value[y][x]
+    if (old == 'empty') {
+      if (grabbedFrom.value && grabbing.value) {
+        board.value[y][x] = grabbing.value;
+        grabbedFrom.value = undefined;
+        grabbing.value = undefined;
+      }
+    } else {
+      if (grabbedFrom.value && grabbing.value) {
+        const { x: ox, y: oy } = grabbedFrom.value;
+        board.value[oy][ox] = grabbing.value;
+        grabbedFrom.value = undefined;
+        grabbing.value = undefined;
+      }
+    }
+  }
+
+  function returnFigure() {
+    if (grabbedFrom.value && grabbing.value) {
+      const { x: ox, y: oy } = grabbedFrom.value;
+      board.value[oy][ox] = grabbing.value;
+      grabbedFrom.value = undefined;
+      grabbing.value = undefined;
+    }
+  }
 
   function moveFigure(from: Vec2D, to: Vec2D) {
     const rowFrom = board.value[from.y]
@@ -44,7 +84,11 @@ export const useGameStore = defineStore('game', () => {
     myColor,
     myTurn,
     board,
+    grabbing,
+    grabbedFrom,
     setFigure,
-    moveFigure,
+    // moveFigure,
+    grabFigure,
+    putFigure
   }
 })

@@ -2,17 +2,9 @@
 import { useGameStore } from '@/stores/game';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-const props = defineProps({
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
-});
-
 const game = useGameStore();
 
-const x = props.x;
-const y = props.y;
-
-const figure = computed(() => game.board?.[x]?.[y] || 'empty');
+const figure = computed(() => game.grabbing );
 const figureSrc = computed(() => `figures/${figure.value}.png`);
 
 

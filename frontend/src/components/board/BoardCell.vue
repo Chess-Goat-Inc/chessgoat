@@ -25,7 +25,10 @@ const cellClass = reactive({
 </script>
 
 <template>
-  <div :class="cellClass">
+  <div :class="cellClass"
+    @pointerdown="$emit('press', x, y, $event)"
+    @pointerup="$emit('release', x, y, $event)"
+  >
     <img v-if="!empty" class="figure" :src="figureSrc" :alt="figure">
   </div>
 </template>
@@ -38,7 +41,7 @@ const cellClass = reactive({
   justify-content: center;
   align-items: center;
   user-select: none;
-  pointer-events: none;
+  /* pointer-events: none; */
   -webkit-user-drag: none;
 }
 .cell0 { background-color: #B9FBB3; }
