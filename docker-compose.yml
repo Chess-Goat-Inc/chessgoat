@@ -55,6 +55,7 @@ services:
   db:
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./chess_goat_dump.sql:/docker-entrypoint-initdb.d/data.sql
     image: postgres:alpine
     environment:
       - PGDATA=/var/lib/postgresql/data
