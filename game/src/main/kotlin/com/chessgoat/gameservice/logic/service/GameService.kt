@@ -8,8 +8,10 @@ import com.chessgoat.gameservice.logic.domain.GameStatus
 import com.chessgoat.gameservice.logic.domain.PlayerColor
 import com.chessgoat.gameservice.logic.engine.ChessEngine
 import com.chessgoat.gameservice.logic.result.GameMoveResult
+import org.springframework.stereotype.Service
 import kotlin.time.ExperimentalTime
 
+@Service
 class GameService(
     private val chessEngine: ChessEngine
 ) {

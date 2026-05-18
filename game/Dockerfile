@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN ./gradlew build
+RUN ./gradlew build -x test
 
-CMD ["java", "-jar", "build/libs/game-service.jar"]
+CMD ["sh", "-c", "java -jar build/libs/*SNAPSHOT.jar"]

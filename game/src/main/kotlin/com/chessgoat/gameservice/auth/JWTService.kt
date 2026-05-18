@@ -40,7 +40,7 @@ class JwtService {
     }
 
     private fun loadPublicKey(): RSAPublicKey {
-        val resource = ClassPathResource("keys/jwt-public.pem")
+        val resource = ClassPathResource("keys/jwt_public.pem")
 
         val keyBytes =
             resource.inputStream

@@ -8,7 +8,9 @@ import com.github.bhlangonijr.chesslib.Board
 import com.github.bhlangonijr.chesslib.Side
 import com.github.bhlangonijr.chesslib.move.Move
 import com.github.bhlangonijr.chesslib.move.MoveGenerator
+import org.springframework.stereotype.Service
 
+@Service
 class ChessLibAdapter : ChessEngine {
 
     override fun createInitialState(): GameState {
