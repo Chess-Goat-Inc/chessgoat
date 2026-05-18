@@ -1,17 +1,46 @@
-<script setup>
+<script setup lang="ts">
 import Input from './basic/Input.vue';
 import Button from './basic/Button.vue';
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import { useProfileStore } from '@/stores/profile';
 
+const router = useRouter();
+
+const auth = useAuthStore();
+const profile = useProfileStore();
+
+const username = ref('');
+const password = ref('');
+const repeat_password = ref('');
+
+async function on_submit() {
+  const data = {
+    username: username.value,
+    password: password.value
+  }
+  try {
+    if (password.value != repeat_password.value)
+      throw Error('passwords mismatch')
+    await auth.register(data);
+    await profile.get_me();
+    router.push('/lobby');
+  } catch(error) {
+    console.log(error);
+    alert(error);
+  }
+}
 
 </script>
 
 <template>
   <div class="register-dialog">
     <h1>Register in Chess Goat ♟️</h1>
-    <Input ref="username" width="100%" placeholder="username"></Input>
-    <Input ref="password" width="100%" variant="password" placeholder="password"></Input>
-    <Input ref="repeat_password" width="100%" variant="password" placeholder="repeat password"></Input>
-    <Button ref="submit" width="100%" variant="green">register</Button>
+    <Input width="100%" placeholder="username" v-model="username"></Input>
+    <Input width="100%" variant="password" placeholder="password" v-model="password"></Input>
+    <Input width="100%" variant="password" placeholder="repeat password" v-model="repeat_password"></Input>
+    <Button ref="submit" width="100%" variant="green" @click="on_submit">register</Button>
     <div class="prompt">
       <p>already registered?</p>
       <RouterLink to="/auth/login">login</RouterLink>

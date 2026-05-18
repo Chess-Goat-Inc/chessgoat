@@ -1,5 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+
+defineOptions({ name: 'BasicInput' });
 
 const VARIANTS = [
   'gray', 'green', 'red',

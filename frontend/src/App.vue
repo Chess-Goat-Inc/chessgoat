@@ -1,35 +1,20 @@
 <script setup lang="ts">
 import Header from './components/Header.vue'
-import { useRoute } from 'vue-router'
-import { computed } from 'vue'
+import type { Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useGameStore } from './stores/game'
-import { fetch_login } from './fetches'
 import { useAuthStore } from './stores/auth'
 import { useProfileStore } from './stores/profile'
-import type { LoginData } from './models'
+import ChallengeMessage from './components/ChallengeMessage.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const auth = useAuthStore();
 const profile = useProfileStore();
 const gameStore = useGameStore()
 
-const data: LoginData = {
-  'username': 'upco',
-  'password': '123'
-}
-// auth.refresh().then(()=>{
-//   console.log(auth.access_token);
-//   profile.get_me().then(()=>{
-//     console.log(profile.me)
-//   })
-// })
-auth.login(data).then(()=>{
-  console.log(auth.access_token);
-  profile.get_me().then(()=>{
-    console.log(profile.me)
-  })
-})
 
 const headerTitle = computed(() => {
   const metaTitle = route.meta.headerTitle as string | undefined
@@ -40,6 +25,21 @@ const headerTitle = computed(() => {
   return undefined
 })
 
+watch(auth, async () => {
+  await profile.get_me();
+  myUsername.value = profile.username;
+})
+
+const myUsername: Ref<string | undefined> = ref(undefined);
+
+onBeforeMount(async () => {
+  try { await auth.refresh(); }
+  catch (error) {
+    console.log(error);
+    router.push('/auth/login');
+  }
+})
+
 </script>
 
 <template>
@@ -48,7 +48,7 @@ const headerTitle = computed(() => {
       <span v-if="headerTitle">{{ headerTitle }}</span>
       <span v-else>
         <RouterLink to="/lobby">Lobby</RouterLink>
-        <RouterLink to="/profile">Profile</RouterLink>
+        <RouterLink :to="`/user/${myUsername}`">Profile</RouterLink>
       </span>
     </template>
   </Header>

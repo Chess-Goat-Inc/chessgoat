@@ -8,18 +8,23 @@ import { useAuthStore } from './auth'
 export const useProfileStore = defineStore('profile', () => {
   const auth = useAuthStore();
 
-  const me: Ref<Player | undefined> = ref(undefined);
+  const username: Ref<string | undefined> = ref(undefined);
+  const place: Ref<number | undefined> = ref(undefined);
+  const score: Ref<number | undefined> = ref(undefined);
 
   async function get_me() {
     if (auth.access_token) {
-      me.value = await fetch_me(auth.access_token);
+      const me = await fetch_me(auth.access_token);
+      username.value = me.username
+      place.value = me.place
+      score.value = me.score
     } else {
       throw Error('auth.access_token is undefined')
     }
   }
 
   return {
-    me,
+    username, place, score,
     get_me
   }
 })
