@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { onBeforeMount, onMounted, ref, watch } from 'vue';
 import type { Ref } from 'vue';
-import type { Player, RequestMessage} from '@/models';
+import type { Player, RequestMessage, AcceptMessage} from '@/models';
 import { computed, provide } from 'vue';
 import ScoreTable from '../ScoreTable.vue';
 import { fetch_me, fetch_players } from '@/fetches';
-import { useProfileStore } from '@/stores/profile';
+import { useProfileStore} from '@/stores/profile';
+import { useGameStore } from '@/stores/game';
 import { useAuthStore } from '@/stores/auth';
 import ChallengeMessage from '../ChallengeMessage.vue';
+import router from '@/router';
 
-const profile = await useProfileStore();
+const profile = useProfileStore();
 const players: Ref<Player[]> = ref([]);
 const challengeMessages = ref<{opponent: string, time?: number, id: number}[]>([]);
 let challengeId = 0;
+const gameStore = useGameStore();
 
 async function get_players_and_me() {
   players.value = await fetch_players();
@@ -31,10 +34,16 @@ function test_ws() {
     ws.send(`${token}`)
   });
   ws.addEventListener('message', (e)=> {
-    const message = JSON.parse(e.data) as RequestMessage;
+    const message = JSON.parse(e.data) as RequestMessage|AcceptMessage;
     console.log(`Recevied ${message.type}, ${message.opponent?.username}`)
     if (message.type === 'challenge_request' && message.opponent?.username) {
       challengeMessages.value.push({ opponent: message.opponent.username, time: 45, id: challengeId++ });
+    }
+    else if (message.type === "challenge_accept") {
+      let accMessage = message as AcceptMessage
+      gameStore.gameId = accMessage.gameId
+      console.log(gameStore.gameId)
+      router.push("/game")
     }
   })
   ws.addEventListener('error', (event) => {

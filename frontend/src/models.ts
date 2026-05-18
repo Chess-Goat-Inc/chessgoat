@@ -30,3 +30,9 @@ export interface RequestMessage {
   opponent: Opponent
   requested_at: number
 }
+
+export interface AcceptMessage {
+  type: string,
+  opponent: Opponent 
+  gameId: number
+}

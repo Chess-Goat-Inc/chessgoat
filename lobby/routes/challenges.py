@@ -37,7 +37,7 @@ async def create_challenge(username: str, payload = Depends(validate_token), ses
     return {"challenge_id": chall_id}
 
 @router.post("/accept/{username}")
-async def accept_challenge(username: str, request: Request, session: AsyncSession = Depends(), payload = Depends(validate_token)):
+async def accept_challenge(username: str, session: AsyncSession = Depends(get_async_db), payload = Depends(validate_token)):
     initiator = payload["username"]
     opponent_ws = manager.is_online(username)
     if not opponent_ws:
