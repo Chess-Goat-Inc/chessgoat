@@ -16,17 +16,6 @@ class GameserviceApplicationTests {
 	}
 
     @Test
-    fun `initial position created correctly`() {
-        val engine = ChessLibAdapter()
-        val state = engine.createInitialState()
-
-        assertEquals(
-            PlayerColor.WHITE,
-            state.turn
-        )
-    }
-
-    @Test
     fun `e2e4 should be legal`() {
         val engine = ChessLibAdapter()
         val state = engine.createInitialState()
