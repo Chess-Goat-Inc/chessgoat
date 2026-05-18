@@ -15,7 +15,8 @@ class ChessLibAdapter : ChessEngine {
         val board = Board()
         return GameState(
             fen = board.fen,
-            turn = PlayerColor.WHITE
+//            turn = PlayerColor.WHITE,
+            status = GameStatus.STARTED
         )
     }
 
@@ -43,11 +44,12 @@ class ChessLibAdapter : ChessEngine {
 
             val newState = GameState(
                 fen = board.fen,
-                turn =
-                    if (board.sideToMove == Side.WHITE)
-                        PlayerColor.WHITE
-                    else
-                        PlayerColor.BLACK
+//                turn =
+//                    if (board.sideToMove == Side.WHITE)
+//                        PlayerColor.WHITE
+//                    else
+//                        PlayerColor.BLACK,
+                status = state.status
             )
 
             MoveResult(

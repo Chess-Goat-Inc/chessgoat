@@ -45,20 +45,14 @@ class GameWebSocketHandler(
         println("Socket connected: ${session.id}")
 
         val task = scheduler.schedule({
-            if (session.isOpen && !session.attributes.containsKey("authenticated")) {
+            if (session.isOpen && !session.attributes.containsKey(AUTHENTICATED)) {
                 try {
-                    val reject = ConnectionRejectMessage(reason = "Authentication timeout")
-
-                    session.sendMessage(
-                        TextMessage(objectMapper.writeValueAsString(reject))
-                    )
-
+                    sendConnectionRejectMessage(session, "Authentication timeout")
                     session.close()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
-
         }, 30, TimeUnit.SECONDS)
 
         authTimeoutTasks[session.id] = task
@@ -129,6 +123,16 @@ class GameWebSocketHandler(
 
             if (room.isReady()) {
                 val initialBoardFen = gameService.getBoardFen(gameId)
+                if (initialBoardFen == null) {
+                    println("${javaClass.simpleName} handleInitialMessage(): Could not get initial board fen for game id=$gameId")
+                    return
+                }
+
+                val startSuccess = gameService.startGame(gameId)
+                if (!startSuccess) {
+                    println("${javaClass.simpleName} handleInitialMessage(): Something went wrong in startGame()")
+                }
+
                 room.sessions.values.forEach {
                     sendStartGameMessage(
                         it,
@@ -160,7 +164,7 @@ class GameWebSocketHandler(
 
         val result = gameService.makeMove(gameId, playerColor, moveMessage.move)
 
-        if (!result.success || result.game == null) {
+        if (!result.success || result.gameState == null) {
             sendMoveRejectMessage(
                 session = session,
                 move = moveMessage.move,
@@ -176,7 +180,7 @@ class GameWebSocketHandler(
                 room.sessions.values.forEach {
                     sendFinishGameMessage(
                         session = it,
-                        fen = result.game.state.fen,
+                        fen = result.gameState.fen,
                         winner = result.finishState.finishStatus,
                         rating =
                             if (playerColor == PlayerColor.WHITE) {
@@ -189,7 +193,7 @@ class GameWebSocketHandler(
             } else {
                 sendMoveAcceptMessage(
                     session = session,
-                    fen = result.game.state.fen,
+                    fen = result.gameState.fen,
                     move = moveMessage.move
                 )
 
@@ -197,7 +201,7 @@ class GameWebSocketHandler(
                 opponent?.let {
                     sendOpponentMoveMessage(
                         opponentSession = opponent,
-                        fen = result.game.state.fen,
+                        fen = result.gameState.fen,
                         move = moveMessage.move
                     )
                 }
@@ -218,7 +222,8 @@ class GameWebSocketHandler(
             playerColor
         )
 
-        if (!result.success || result.game == null) {
+        if (!result.success || result.gameState == null) {
+            println("${javaClass.simpleName} afterConnectionClosed(): Something went wrong in handleDisconnect()")
             return
         }
 
@@ -233,7 +238,7 @@ class GameWebSocketHandler(
                 ) {
                 sendFinishGameMessage(
                     session = opponentSession,
-                    fen = result.game.state.fen,
+                    fen = result.gameState.fen,
                     winner = result.finishState.finishStatus,
                     rating =
                         if (playerColor == PlayerColor.WHITE) {

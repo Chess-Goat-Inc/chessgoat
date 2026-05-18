@@ -15,34 +15,25 @@ class GameService(
 ) {
     @OptIn(ExperimentalTime::class)
     fun makeMove(
-        game: Game,
+        gameState: GameState,
         playerColor: PlayerColor,
         move: String
     ): GameMoveResult {
-        if (game.status != GameStatus.STARTED) {
+        if (gameState.status != GameStatus.STARTED) {
             return GameMoveResult(
                 success = false,
-                game = null,
+                gameState = null,
                 error = "Game is not active",
                 finishState = null
             )
         }
 
-        if (game.state.turn != playerColor) {
-            return GameMoveResult(
-                success = false,
-                game = null,
-                error = "It is not $playerColor turn",
-                finishState = null
-            )
-        }
-
-        val moveResult = chessEngine.applyMove(game.state, move)
+        val moveResult = chessEngine.applyMove(gameState, move)
 
         if (!moveResult.success || moveResult.state == null) {
             return GameMoveResult(
                 success = false,
-                game = null,
+                gameState = null,
                 error = moveResult.error ?: "Move failed",
                 finishState = null
             )
@@ -54,25 +45,21 @@ class GameService(
                 GameStatus.FINISHED
             else
                 GameStatus.STARTED
-        val winner =
-            when (finishStatus) {
-                GameFinishStatus.WHITE_WIN -> PlayerColor.WHITE
-                GameFinishStatus.BLACK_WIN -> PlayerColor.BLACK
-                else                       -> null
-            }
+//        val winner =
+//            when (finishStatus) {
+//                GameFinishStatus.WHITE_WIN -> PlayerColor.WHITE
+//                GameFinishStatus.BLACK_WIN -> PlayerColor.BLACK
+//                else                       -> null
+//            }
 
-        val updatedGame = game.copy(
-            state = GameState(
-                fen = moveResult.state.fen,
-                turn = moveResult.state.turn,
-            ),
-            status = gameStatus,
-            winner = winner
+        val updatedGameState = gameState.copy(
+            fen = moveResult.state.fen,
+            status = gameStatus
         )
         
         return GameMoveResult(
             success = true,
-            game = updatedGame,
+            gameState = updatedGameState,
             error = null,
             finishState =
                 if (finishStatus != null) {
@@ -96,13 +83,4 @@ class GameService(
             else -> null
         }
     }
-
-    @OptIn(ExperimentalTime::class)
-    fun resign(game: Game, playerColor: PlayerColor): Game {
-        val newStatus = GameStatus.FINISHED
-        return game.copy(status = newStatus)
-    }
-
-    fun isGameFinished(game: Game): Boolean =
-        game.status == GameStatus.FINISHED
 }

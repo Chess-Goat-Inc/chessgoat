@@ -13,9 +13,6 @@ class GameEntity(
     @Column(name = "game_id")
     val id: Int,
 
-    @Column(name = "board_fen")
-    var boardFen: String,
-
     @Column(name = "state")
     var status: String,
 

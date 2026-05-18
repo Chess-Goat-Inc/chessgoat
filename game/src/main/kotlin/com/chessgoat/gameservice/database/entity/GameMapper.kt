@@ -14,11 +14,6 @@ class GameMapper {
 
         return Game(
             id = entity.id,
-            state = GameState(
-                fen = entity.boardFen,
-                turn = extractTurnFromFen(entity.boardFen)
-            ),
-            status = GameStatus.valueOf(entity.status.uppercase()),
             whitePlayerId = entity.whitePlayerId,
             blackPlayerId = entity.blackPlayerId,
             winner = entity.winnerId?.let {
@@ -33,8 +28,9 @@ class GameMapper {
     fun toEntity(game: Game): GameEntity {
         return GameEntity(
             id = game.id,
-            boardFen = game.state.fen,
-            status = game.status.name.lowercase(),
+            status = game.state?.let {
+                game.state.status.name.lowercase()
+            } ?: GameStatus.STARTED.name.lowercase(),
             whitePlayerId = game.whitePlayerId,
             blackPlayerId = game.blackPlayerId,
             winnerId = when(game.winner) {

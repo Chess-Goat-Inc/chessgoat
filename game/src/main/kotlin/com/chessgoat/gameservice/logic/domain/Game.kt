@@ -5,8 +5,7 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalTime::class)
 data class Game(
     val id: Int,
-    val state: GameState,
-    val status: GameStatus,
+    val state: GameState? = null,
     val whitePlayerId: Int,
     val blackPlayerId: Int,
     val winner: PlayerColor?
