@@ -22,6 +22,7 @@ export const useGameStore = defineStore('game', () => {
   const grabbing = ref<string | undefined>(undefined)
   const grabbedFrom = ref<Vec2D | undefined>(undefined)
   const gameId = ref<number | undefined>(undefined)
+  const ws = ref<WebSocket | undefined>(undefined)
 
   function grabFigure(x: number, y: number) {
     const old = board.value[y][x];
@@ -81,6 +82,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   return {
+    ws,
     opponent,
     myColor,
     myTurn,

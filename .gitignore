@@ -8,5 +8,3 @@ jwt_public.pem
 init-db
 auth/.DS_Store
 .DS_Store
-
-mock_game/

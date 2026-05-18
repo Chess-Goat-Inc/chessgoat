@@ -1,0 +1,14 @@
+[project]
+name = "mock-game"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cryptography>=48.0.0",
+    "dotenv>=0.9.9",
+    "fastapi>=0.136.1",
+    "pyjwt>=2.12.1",
+    "redis>=7.4.0",
+    "uvicorn>=0.47.0",
+]
