@@ -21,3 +21,12 @@ export const EMPTY_PLAYER: Player = {
   is_me: false
 }
 
+export interface Opponent {
+  id: number,
+  username: string
+}
+export interface RequestMessage {
+  type: string,
+  opponent: Opponent
+  requested_at: number
+}

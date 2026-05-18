@@ -1,15 +1,28 @@
 <script lang="ts">
-import {defineComponent} from 'vue';
+import { defineComponent, onMounted } from 'vue';
 import Button from './basic/Button.vue';
 export default defineComponent({
-    data() {
-        return {
-            time: 60,
-            opponent: "VALERA"
+    props: {
+        opponent: {
+            type: String,
+            required: true
+        },
+        time: {
+            type: Number,
+            default: 45
         }
     },
+    emits: ['timeout'],
     components: {
         Button
+    },
+    setup(props, { emit }) {
+        onMounted(() => {
+            setTimeout(() => {
+                emit('timeout');
+            }, props.time * 1000);
+        });
+        return {};
     }
 })
 </script>
@@ -69,7 +82,7 @@ export default defineComponent({
   width: 100%;
   background: linear-gradient(90deg, #4caf50, #8bc34a);
   border-radius: 6px;
-  animation: countdown 10s linear forwards;
+  animation: countdown 45s linear forwards;
 }
 
 @keyframes countdown {
