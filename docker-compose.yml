@@ -71,6 +71,7 @@ services:
   db:
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/data.sql
     image: postgres:alpine
     environment:
       - PGDATA=/var/lib/postgresql/data
