@@ -1,15 +1,58 @@
 <script lang="ts">
-import {defineComponent} from 'vue';
+import { defineComponent, onMounted } from 'vue';
+import { useGameStore } from '@/stores/game';
+import { useAuthStore } from '@/stores/auth';
 import Button from './basic/Button.vue';
+import router from '@/router';
+const LOBBY_HOST_URL = 'http://localhost:8000'
 export default defineComponent({
-    data() {
-        return {
-            time: 60,
-            opponent: "VALERA"
+    props: {
+        opponent: {
+            type: String,
+            required: true
+        },
+        time: {
+            type: Number,
+            default: 45
         }
     },
+    emits: ['timeout'],
     components: {
         Button
+    },
+    setup(props, { emit }) {
+        onMounted(() => {
+            setTimeout(() => {
+                emit('timeout');
+            }, props.time * 1000);
+        });
+        const gameStore = useGameStore()
+        const auth = useAuthStore()
+        return {gameStore, auth};
+    },
+    methods: {
+        async declineChallenge(){
+
+        },
+        async acceptChallenge(opponent: string){
+                const access_token = this.auth.access_token
+                const headers = new Headers({
+                        'Authorization': `Bearer ${access_token}`
+                    })
+                const response = await fetch(
+                    `${LOBBY_HOST_URL}/challenge/accept/${opponent}`,
+                    { method: 'POST', headers: headers}
+                )
+                if (!response.ok) {
+                    console.log('Fetch error:', response)
+                    return;
+                }
+                const body = await response.json();
+                const gameId = body.game_id;
+                this.gameStore.gameId = gameId;
+                console.log(this.gameStore.gameId)
+                router.push("/game");
+        }
     }
 })
 </script>
@@ -24,8 +67,8 @@ export default defineComponent({
         </div>
         <div class="challenge-text">{{ opponent }} challenges you ⚔️</div>
         <div class="button-container">
-            <Button class="acc-button" variant="green">accept ⚔️</Button>
-            <Button class="dec-button" variant="red">decline 🤡</Button>
+            <Button class="acc-button" variant="green" @click="acceptChallenge(opponent)">accept ⚔️</Button>
+            <Button class="dec-button" variant="red" @click="declineChallenge()">decline 🤡</Button>
         </div>
     </div>
 
@@ -44,6 +87,7 @@ export default defineComponent({
     height: 95px;
     border: 1px #A0A0A0 solid;
     padding: 10px;
+    background-color: white;
 }
 
 .button-container {
@@ -69,7 +113,7 @@ export default defineComponent({
   width: 100%;
   background: linear-gradient(90deg, #4caf50, #8bc34a);
   border-radius: 6px;
-  animation: countdown 10s linear forwards;
+  animation: countdown 45s linear forwards;
 }
 
 @keyframes countdown {

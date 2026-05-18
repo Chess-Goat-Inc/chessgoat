@@ -43,10 +43,10 @@ class User(BaseModel):
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="There is no such status")
         return value
 
-async def get_user(name: str, session: AsyncSession = Depends(get_async_db))-> User | None:
+async def get_user(name: str, session: AsyncSession)-> User | None:
     stmt = select(UserModel).where(UserModel.username == name)
     result = await session.execute(stmt)
-    user = result.first()
+    user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return User(

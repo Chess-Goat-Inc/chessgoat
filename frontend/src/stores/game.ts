@@ -21,6 +21,7 @@ export const useGameStore = defineStore('game', () => {
   const board = ref<string[][]>(make2DArray(8,8,'empty'))
   const grabbing = ref<string | undefined>(undefined)
   const grabbedFrom = ref<Vec2D | undefined>(undefined)
+  const gameId = ref<number | undefined>(undefined)
 
   function grabFigure(x: number, y: number) {
     const old = board.value[y][x];
@@ -89,6 +90,7 @@ export const useGameStore = defineStore('game', () => {
     setFigure,
     // moveFigure,
     grabFigure,
-    putFigure
+    putFigure,
+    gameId
   }
 })

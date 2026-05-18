@@ -74,19 +74,7 @@ export async function fetch_player(username: string): Promise<Player> {
 }
 
 
-export function test_ws() {
-  const URI = 'ws://localhost:8000/lobby'
-  const ws = new WebSocket(URI);
-  ws.addEventListener('open', () => {
-    console.log('CONNECTED');
-    let counter = 0;
-    setInterval(() => {
-      console.log(`SENT: ping ${counter}`);
-      ws.send('ping');
-      counter++;
-    }, 1000);
-  });
-}
+
 
 
 export async function fetch_refresh(): Promise<string> {

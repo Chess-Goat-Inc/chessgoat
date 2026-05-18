@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from './basic/Button.vue';
+import { useAuthStore } from '@/stores/auth';
 const props = defineProps({
   place: { type: Number, required: true },
   score: { type: Number, required: true },
@@ -7,7 +8,25 @@ const props = defineProps({
   status: { type: String, required: true },
   is_me: { type: Boolean, required: true },
 })
+const LOBBY_HOST_URL = 'http://localhost:8000'
 const realStatus = props.is_me ? '' : props.status;
+
+const auth = useAuthStore();
+async function challenge(nickname: string) {
+  const access_token = auth.access_token
+  const headers = new Headers({
+    'Authorization': `Bearer ${access_token}`
+  })
+  const response = await fetch(
+    `${LOBBY_HOST_URL}/challenge/request/${nickname}`,
+    { method: 'POST', headers: headers }
+  )
+  if (!response.ok) {
+    console.log('Fetch error:', response);
+  }
+  const body = await response.json();
+  console.log(body)
+}
 </script>
 
 
@@ -23,7 +42,7 @@ const realStatus = props.is_me ? '' : props.status;
         </div>
     </div>
     <div class="row-actions">
-      <Button variant="green" v-if="realStatus === 'online'">challenge ⚔️</Button>
+      <Button variant="green" v-if="realStatus === 'online'" @click="challenge(props.username)">challenge ⚔️</Button>
       <Button disabled v-if="realStatus === 'offline'">offline 💤</Button>
       <Button disabled v-if="realStatus === 'in-game'">in game ⏳</Button>
     </div>

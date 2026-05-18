@@ -15,3 +15,4 @@ class Game(Base):
     state = Column(Enum(GameState), nullable=False, default=GameState.ready)
     white_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     black_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    winner_id = Column(Integer, ForeignKey('users.user_id'))
