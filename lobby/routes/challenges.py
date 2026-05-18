@@ -86,7 +86,7 @@ async def accept_challenge(username: str, session: AsyncSession = Depends(get_as
     return {"game_id": game_id}
 
 @router.post("/decline/{username}")
-async def decline_challenge(username: str, payload = Depends(validate_token)):
+async def decline_challenge(username: str, payload = Depends(validate_token), session: AsyncSession = Depends(get_async_db)):
     initiator = payload["username"]
     
     opponent_ws = manager.is_online(username)
@@ -102,7 +102,7 @@ async def decline_challenge(username: str, payload = Depends(validate_token)):
     if not chall_id:
         return {"detail": "Challenge not found or already expired"}
     manager.cancel_timer(chall_id)
-    opponent = await get_user(initiator)
+    opponent = await get_user(initiator, session)
     if not opponent:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no such opponent")
     await opponent_ws.send_json({
