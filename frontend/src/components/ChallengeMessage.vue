@@ -4,6 +4,7 @@ import { useGameStore } from '@/stores/game';
 import { useAuthStore } from '@/stores/auth';
 import Button from './basic/Button.vue';
 import router from '@/router';
+import { emit } from 'process';
 const LOBBY_HOST_URL = 'http://localhost:8000'
 export default defineComponent({
     props: {
@@ -31,8 +32,20 @@ export default defineComponent({
         return {gameStore, auth};
     },
     methods: {
-        async declineChallenge(){
-
+        async declineChallenge(opponent: string){
+            const access_token = this.auth.access_token
+            const headers = new Headers({
+                'Authorization': `Bearer ${access_token}`
+            })
+            const response = await fetch(
+                `${LOBBY_HOST_URL}/challenge/decline/${opponent}`,
+                    { method: 'POST', headers: headers}
+            )
+            if (!response.ok) {
+                    console.log('Fetch error:', response)
+                    return;
+            }
+            this.$emit('timeout')
         },
         async acceptChallenge(opponent: string){
                 const access_token = this.auth.access_token
@@ -51,6 +64,7 @@ export default defineComponent({
                 const gameId = body.game_id;
                 this.gameStore.gameId = gameId;
                 console.log(this.gameStore.gameId)
+                this.$emit('timeout')
                 router.push("/game");
         }
     }
@@ -68,7 +82,7 @@ export default defineComponent({
         <div class="challenge-text">{{ opponent }} challenges you ⚔️</div>
         <div class="button-container">
             <Button class="acc-button" variant="green" @click="acceptChallenge(opponent)">accept ⚔️</Button>
-            <Button class="dec-button" variant="red" @click="declineChallenge()">decline 🤡</Button>
+            <Button class="dec-button" variant="red" @click="declineChallenge(opponent)">decline 🤡</Button>
         </div>
     </div>
 

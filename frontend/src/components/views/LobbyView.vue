@@ -45,6 +45,9 @@ function test_ws() {
       console.log(gameStore.gameId)
       router.push("/game")
     }
+    else if (message.type === "challenge_decline") {
+      alert(`${message.opponent.username} does not want to play with you(`)
+    }
   })
   ws.addEventListener('error', (event) => {
     console.log('WebSocket error:', event)
