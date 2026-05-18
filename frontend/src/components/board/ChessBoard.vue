@@ -34,6 +34,14 @@ function onCellRelease(x: number, y: number, event: Event) {
   console.log('release', x, y);
   boardStyle.cursor = 'grab';
   floatingClass.hidden = true;
+
+  game.ws?.send(JSON.stringify({
+    type: 'move',
+    x0: game.grabbedFrom?.x,
+    y0: game.grabbedFrom?.y,
+    x1: x,
+    y1: y
+  }))
   game.putFigure(y,x);
 }
 </script>
