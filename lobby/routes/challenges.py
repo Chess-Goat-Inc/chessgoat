@@ -8,15 +8,16 @@ from models.game import Game, GameState
 from models.users import User as UserModel
 from sqlalchemy import insert
 from .users import validate_token, get_user
+from .dependences import get_async_db
 router = APIRouter(prefix="/challenge")
 
 
 @router.post("/request/{username}")
-async def create_challenge(username: str, session: AsyncSession = Depends(), payload = Depends(validate_token)):
+async def create_challenge(username: str, payload = Depends(validate_token), session: AsyncSession = Depends(get_async_db)):
     opponent_ws = manager.is_online(username)
     if not opponent_ws:
         raise HTTPException(status_code=400, detail="user offline")
-    chall_id = await r.incr("chall:next_id")
+    chall_id = r.incr("chall:next_id")
     timestamp = int(time.time() * 1000)
     initiator = payload["username"]
     r.hset(f"challenge:{chall_id}", mapping={
@@ -25,10 +26,12 @@ async def create_challenge(username: str, session: AsyncSession = Depends(), pay
         "requested_at": timestamp
     })
     manager.create_timer(chall_id)
-    user_id = await get_user(initiator)
+    user = await get_user(initiator, session)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no such user")
     await opponent_ws.send_json({
         "type": "challenge_request",
-        "opponent": {"id": user_id, "username": initiator},
+        "opponent": {"id": user.id, "username": initiator},
         "requested_at": timestamp
     })
     return {"challenge_id": chall_id}
@@ -48,14 +51,14 @@ async def accept_challenge(username: str, request: Request, session: AsyncSessio
     if not chall_id:
         raise HTTPException(status_code=404, detail="Challenge not found or expired")
 
-    game_id = await r.incr("game:next_id")
+    game_id = r.incr("game:next_id")
     r.hset(f"game:{game_id}", mapping={
         "state": "somebulshit",
         "white": initiator,
         "black": username
     })
-    black_player = await get_user(username)
-    white_player = await get_user(initiator)
+    black_player = await get_user(username, session)
+    white_player = await get_user(initiator, session)
     if not white_player or not black_player:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no such players")
     stmt = insert(Game).values(state=GameState.ready, white_id=white_player.id, black_id=black_player.id)
