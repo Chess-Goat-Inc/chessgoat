@@ -57,11 +57,11 @@ async def game_websocket(websocket: WebSocket, id: int):
         color = 'white' if game['white'] == username else 'black'
         opp_color = 'white' if color == 'black' else 'black'
         opp_username = game[opp_color]
-        opp_ws = manager.active_connections.get(opp_username, None)
-        print("Got opp_ws", opp_ws)
 
         while True:
             data = await websocket.receive_text()
+            opp_ws = manager.active_connections.get(opp_username, None)
+            print("Got opp_ws", opp_ws, flush=True)
             print(f"{color[0]} | received: {data}")
             if opp_ws:
                 await opp_ws.send_text(data)

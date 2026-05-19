@@ -36,7 +36,7 @@ const players: Player[] = inject('players', []);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 40%;
+  width: 34em;
   margin: 16px;
   height: fit-content;
 }
