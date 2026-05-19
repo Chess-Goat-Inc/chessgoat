@@ -63,6 +63,7 @@ export default defineComponent({
                 const body = await response.json();
                 const gameId = body.game_id;
                 this.gameStore.gameId = gameId;
+                this.gameStore.opponent = opponent;
                 console.log(this.gameStore.gameId)
                 this.$emit('timeout')
                 router.push("/game");

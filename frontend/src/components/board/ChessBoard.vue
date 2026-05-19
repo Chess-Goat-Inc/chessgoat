@@ -22,19 +22,38 @@ onMounted(()=>{
   })
 })
 
-function onCellPress(x: number, y: number, event: Event) {
-  console.log('press', x, y);
-  // game.board.value[x][y] = 'empty'
-  boardStyle.cursor = 'grabbing';
-  floatingClass.hidden = false;
-  game.grabFigure(y,x);
+function onCellPress(idx: number, figure: string, event: Event) {
+  console.log('press', idx);
+  if (figure !== 'empty') {
+    boardStyle.cursor = 'grabbing';
+    floatingClass.hidden = false;
+    game.grabFigure(idx);
+  }
 }
 
-function onCellRelease(x: number, y: number, event: Event) {
-  console.log('release', x, y);
+function onCellRelease(idx: number, figure: string, event: Event) {
+  console.log('release', idx);
   boardStyle.cursor = 'grab';
   floatingClass.hidden = true;
-  game.putFigure(y,x);
+
+  if (game.grabbing && game.canPut(idx)) {
+    if (game.ws !== null) {
+      console.log('ws', game.ws)
+      if (game.ws.readyState === game.ws.CLOSED) {
+        if (game.gameId) {
+          game.start_game_websocket(game.gameId);
+        }
+      }
+      console.log('trying to send', game.ws)
+      game.ws.send(JSON.stringify({
+        type: 'move',
+        from: game.grabbedFrom,
+        to: idx,
+      }))
+      console.log('trying to send', game.ws)
+    }
+    game.putFigure(idx);
+  }
 }
 </script>
 
@@ -42,7 +61,7 @@ function onCellRelease(x: number, y: number, event: Event) {
 <template>
   <div :style="boardStyle" class="board">
     <div class="row" v-for="i in 8" :key="i">
-      <BoardCell v-for="j in 8" :type="(j%2+i%2)%2" :key="j" :x="i-1" :y="j-1"
+      <BoardCell v-for="j in 8" :type="(j%2+i%2)%2" :key="j" :idx="(i-1)*8+(j-1)"
                  @press="onCellPress"
                  @release="onCellRelease"
       />

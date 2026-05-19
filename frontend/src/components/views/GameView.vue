@@ -1,44 +1,53 @@
-<script setup>
+<script setup lang="ts">
 import { useGameStore } from '@/stores/game';
+import { useProfileStore } from '@/stores/profile';
+import { useAuthStore } from '@/stores/auth';
 import ChessBoard from '../board/ChessBoard.vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import GameStatus from '../GameStatus.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const game = useGameStore()
 
-game.setFigure({x:0,y:0}, 'b_rook');
-game.setFigure({x:1,y:0}, 'b_bishop');
-game.setFigure({x:2,y:0}, 'b_knight');
-game.setFigure({x:3,y:0}, 'b_king');
-game.setFigure({x:4,y:0}, 'b_queen');
-game.setFigure({x:5,y:0}, 'b_knight');
-game.setFigure({x:6,y:0}, 'b_bishop');
-game.setFigure({x:7,y:0}, 'b_rook');
-game.setFigure({x:0,y:1}, 'b_pawn');
-game.setFigure({x:1,y:1}, 'b_pawn');
-game.setFigure({x:2,y:1}, 'b_pawn');
-game.setFigure({x:3,y:1}, 'b_pawn');
-game.setFigure({x:4,y:1}, 'b_pawn');
-game.setFigure({x:5,y:1}, 'b_pawn');
-game.setFigure({x:6,y:1}, 'b_pawn');
-game.setFigure({x:7,y:1}, 'b_pawn');
+game.initBoard();
 
-game.setFigure({x:0,y:6}, 'w_pawn');
-game.setFigure({x:1,y:6}, 'w_pawn');
-game.setFigure({x:2,y:6}, 'w_pawn');
-game.setFigure({x:3,y:6}, 'w_pawn');
-game.setFigure({x:4,y:6}, 'w_pawn');
-game.setFigure({x:5,y:6}, 'w_pawn');
-game.setFigure({x:6,y:6}, 'w_pawn');
-game.setFigure({x:7,y:6}, 'w_pawn');
-game.setFigure({x:0,y:7}, 'w_rook');
-game.setFigure({x:1,y:7}, 'w_bishop');
-game.setFigure({x:2,y:7}, 'w_knight');
-game.setFigure({x:3,y:7}, 'w_queen');
-game.setFigure({x:4,y:7}, 'w_king');
-game.setFigure({x:5,y:7}, 'w_knight');
-game.setFigure({x:6,y:7}, 'w_bishop');
-game.setFigure({x:7,y:7}, 'w_rook');
+if (game.gameId) {
+  game.start_game_websocket(game.gameId);
+}
 
-console.log(game.board);
+// watch(
+//   () => game.gameId,
+//   (id) => {
+//     if (id && !gameStarted.value) {
+//       gameStarted.value = true;
+//       start_game_websocket(id);
+//     }
+//   }
+// )
+
+const router = useRouter()
+
+const gameRunning = computed(()=>(game.gameState == 'running'))
+
+function onKeyDown(event: Event) {
+  console.log("KEYDOWN")
+  if (event.key === 'w' || event.key === 'W') {
+    console.log("W")
+    if (game.ws != null) {
+      game.gameState = 'Victory 🎉'
+      game.ws.send(JSON.stringify({type: 'win'}))
+      setTimeout(()=>{ router.push('/lobby') }, 2000)
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown)
+})
 
 </script>
 
@@ -46,6 +55,7 @@ console.log(game.board);
 <template>
   <main>
     <ChessBoard/>
+    <GameStatus :class="gameRunning ? 'disabled' : ''"/>
   </main>
 </template>
 

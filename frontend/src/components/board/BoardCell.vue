@@ -4,16 +4,14 @@ import { computed, reactive, watch } from 'vue';
 
 const props = defineProps({
   type: { type: Number, required: true },
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
+  idx: { type: Number, required: true },
 });
 
-const x = props.x;
-const y = props.y;
+const idx = props.idx;
 
 const game = useGameStore();
 
-const figure = computed(() => game.board?.[x]?.[y] || 'empty')
+const figure = computed(() => game.board[idx] || 'empty')
 const empty = computed(() => (figure.value === 'empty'));
 const figureSrc = computed(() => `figures/${figure.value}.png`)
 
@@ -26,8 +24,8 @@ const cellClass = reactive({
 
 <template>
   <div :class="cellClass"
-    @pointerdown="$emit('press', x, y, $event)"
-    @pointerup="$emit('release', x, y, $event)"
+    @pointerdown="$emit('press', idx, figure, $event)"
+    @pointerup="$emit('release', idx, figure, $event)"
   >
     <img v-if="!empty" class="figure" :src="figureSrc" :alt="figure">
   </div>
@@ -44,8 +42,8 @@ const cellClass = reactive({
   /* pointer-events: none; */
   -webkit-user-drag: none;
 }
-.cell0 { background-color: #B9FBB3; }
-.cell1 { background-color: #FFFDDC; }
+.cell0 { background-color: #FFFDDC; }
+.cell1 { background-color: #B9FBB3; }
 
 .figure {
   width: 53px;
