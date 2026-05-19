@@ -18,7 +18,7 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo "{{ secrets.ENV_FILE64}}" | base64 --decode > .env
+          echo "${{ secrets.ENV_FILE64 }}" | base64 -d -i > .env
 
       - name: Docker Compose up
         run: |
