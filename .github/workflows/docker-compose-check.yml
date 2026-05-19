@@ -34,6 +34,11 @@ jobs:
           docker compose ps
           docker compose logs
 
+      - name: Show DB logs if failed
+        if: failure()
+        run: docker compose logs db
+
+
       - name: Docker Compose down
         if: always()
         run: docker compose down
