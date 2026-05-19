@@ -19,6 +19,13 @@ jobs:
       - name: Set up environment variables
         run: |
           echo "${{ secrets.ENV_FILE64 }}" | base64 -d -i > .env
+          cd auth
+          mkdir secrets
+          echo "${{ secrets.PUBLIC_JWT}}" | base64 -d -i > secrets/jwt_public.pem
+          echo "${{ secrets.PRIVATE_JWT}}" | base64 -d -i > secrets/jwt_private.pem
+          cd ..
+          cd lobby
+          echo "${{ secrets.PUBLIC_JWT}}" | base64 -d -i > jwt_public.pem
 
       - name: Docker Compose up
         run: |
