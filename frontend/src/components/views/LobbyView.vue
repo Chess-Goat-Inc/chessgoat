@@ -42,6 +42,7 @@ function test_ws() {
     else if (message.type === "challenge_accept") {
       let accMessage = message as AcceptMessage
       gameStore.gameId = accMessage.gameId
+      gameStore.opponent = accMessage.opponent.username
       console.log(gameStore.gameId)
       router.push("/game")
     }

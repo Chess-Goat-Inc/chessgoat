@@ -2,7 +2,7 @@
 import Header from './components/Header.vue'
 import type { Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGameStore } from './stores/game'
 import { useAuthStore } from './stores/auth'
 import { useProfileStore } from './stores/profile'
@@ -38,6 +38,19 @@ onBeforeMount(async () => {
     console.log(error);
     router.push('/auth/login');
   }
+})
+
+async function onMouseUp() {
+  const game = useGameStore()
+  game._putGrabbedBack()
+}
+
+onMounted(async () => {
+  window.addEventListener('mouseup', onMouseUp)
+})
+
+onUnmounted(async () => {
+  window.removeEventListener('mouseup', onMouseUp)
 })
 
 </script>
