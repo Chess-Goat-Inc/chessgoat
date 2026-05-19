@@ -3,7 +3,9 @@ import { useGameStore } from '@/stores/game';
 import { useProfileStore } from '@/stores/profile';
 import { useAuthStore } from '@/stores/auth';
 import ChessBoard from '../board/ChessBoard.vue';
-import { ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import GameStatus from '../GameStatus.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const game = useGameStore()
 
@@ -23,12 +25,37 @@ if (game.gameId) {
 //   }
 // )
 
+const router = useRouter()
+
+const gameRunning = computed(()=>(game.gameState == 'running'))
+
+function onKeyDown(event: Event) {
+  console.log("KEYDOWN")
+  if (event.key === 'w' || event.key === 'W') {
+    console.log("W")
+    if (game.ws != null) {
+      game.gameState = 'Victory 🎉'
+      game.ws.send(JSON.stringify({type: 'win'}))
+      setTimeout(()=>{ router.push('/lobby') }, 2000)
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeyDown)
+})
+
 </script>
 
 
 <template>
   <main>
     <ChessBoard/>
+    <GameStatus :class="gameRunning ? 'disabled' : ''"/>
   </main>
 </template>
 

@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useProfileStore } from './profile'
 import { useAuthStore } from './auth'
+import { useRouter } from 'vue-router'
 
 
 // function make2DArray<T>(x: number, y: number, default_: T): T[][] {
@@ -26,6 +27,7 @@ export const useGameStore = defineStore('game', () => {
   const gameId = ref<number | null>(null)
   const ws = ref<WebSocket | null>(null)
 
+  const gameState = ref<string>('running')
 
   function initBoard() {
     board.value = Array(64).fill('empty')
@@ -149,6 +151,7 @@ export const useGameStore = defineStore('game', () => {
     ws.value = new WebSocket(URI);
 
     const auth = useAuthStore()
+    const router = useRouter()
 
     ws.value.addEventListener('open', () => {
       console.log('CONNECTED');
@@ -162,6 +165,13 @@ export const useGameStore = defineStore('game', () => {
         case 'move': {
           const m = message;
           _moveFigure(m.from, m.to)
+          break;
+        }
+        case 'win': {
+          console.log('received win')
+          gameState.value = `Defeat 🥀`
+          setTimeout(()=>{ router.push('/lobby') }, 2000)
+          break;
         }
       }
       console.log(e.data)
@@ -183,6 +193,7 @@ export const useGameStore = defineStore('game', () => {
     board,
     grabbing,
     grabbedFrom,
+    gameState,
     initBoard,
     _setFigure,
     _moveFigure,
