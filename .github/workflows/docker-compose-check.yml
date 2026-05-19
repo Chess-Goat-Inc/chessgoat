@@ -26,6 +26,9 @@ jobs:
           cd ..
           cd lobby
           echo "${{ secrets.PUBLIC_JWT}}" | base64 -d -i > jwt_public.pem
+          cd ..
+          cd mock_game
+          echo "${{ secrets.PUBLIC_JWT}}" | base64 -d -i > jwt_public.pem
 
       - name: Docker Compose up
         run: |
