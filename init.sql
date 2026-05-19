@@ -299,5 +299,5 @@ ALTER TABLE ONLY public.games
 ALTER TABLE ONLY public.refresh_tokens
     ADD CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
-ALTER TABLE games
+ALTER TABLE public.games
 ADD COLUMN winner_id INTEGER REFERENCES users(user_id);
