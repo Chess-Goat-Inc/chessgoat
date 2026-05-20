@@ -21,6 +21,8 @@ ALGORITHM = "RS256"
 ```
 3. Generate a pair of keys (private/public) for authentication use
 ```bash
+openssl genpkey -algorithm RSA -out jwt_private.pem -pkeyopt rsa_keygen_bits:2048
+openssl rsa -pubout -in jwt_private.pem -out jwt_public.pem
 ```
 4. Put private/public key files in the following directives
 ```shell
